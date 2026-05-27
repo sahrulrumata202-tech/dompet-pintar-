@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#0f0f13">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="DompetPintar">
+<link rel="manifest" href="manifest.json">
+<title>DompetPintar</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+/* ── TOKENS ─────────────────────────────────────────────── */
+:root{
+  --bg:#0c0c10;
+  --s1:#141418;   /* card */
+  --s2:#1c1c22;   /* input / inner */
+  --s3:#242430;   /* hover */
+  --border:#2a2a36;
+  --text:#eeedf5;
+  --sub:#9998b0;
+  --accent:#7b68f5;
+  --accent-d:#6355d4;
+  --green:#3ecf8e;
+  --red:#f0585f;
+  --yellow:#f5c842;
+  --blue:#5aadff;
+  --orange:#f5904a;
+  --r:14px;
+  --r-sm:10px;
+  --r-xs:7px;
+  --font:'Plus Jakarta Sans',system-ui,sans-serif;
+  --shadow:0 2px 12px rgba(0,0,0,.35);
+}
+/* ── RESET ──────────────────────────────────────────────── */
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+html,body{height:100%;}
+body{font-family:var(--font);background:var(--bg);color:var(--text);max-width:430px;margin:0 auto;overflow-x:hidden;font-size:14px;line-height:1.5;}
+body::before{content:'';position:fixed;top:-80px;right:-80px;width:280px;height:280px;background:radial-gradient(circle,rgba(123,104,245,.12) 0%,transparent 68%);pointer-events:none;z-index:0;}
+/* ── TYPOGRAPHY ─────────────────────────────────────────── */
+.t-xs{font-size:10px;line-height:1.4;}
+.t-sm{font-size:12px;line-height:1.5;}
+.t-base{font-size:14px;line-height:1.5;}
+.t-md{font-size:16px;line-height:1.4;}
+.t-lg{font-size:20px;line-height:1.3;}
+.t-xl{font-size:26px;line-height:1.2;}
+.t-2xl{font-size:32px;line-height:1.1;}
+.w-3{font-weight:300;}
+.w-4{font-weight:400;}
+.w-5{font-weight:500;}
+.w-6{font-weight:600;}
+.w-7{font-weight:700;}
+.w-8{font-weight:800;}
+.upper{text-transform:uppercase;letter-spacing:.9px;}
+.muted{color:var(--sub);}
+.c-accent{color:var(--accent);}
+.c-green{color:var(--green);}
+.c-red{color:var(--red);}
+.c-yellow{color:var(--yellow);}
+.c-blue{color:var(--blue);}
+.c-orange{color:var(--orange);}
+/* ── LAYOUT ─────────────────────────────────────────────── */
+.header{position:sticky;top:0;z-index:100;background:rgba(12,12,16,.92);backdrop-filter:blur(18px);-webkit-backdrop-filter:blur(18px);border-bottom:1px solid var(--border);padding:14px 18px 0;}
+.header-row{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:13px;}
+.brand{display:flex;flex-direction:column;gap:2px;}
+.brand-name{font-size:17px;font-weight:800;letter-spacing:-.4px;}
+.brand-name span{color:var(--accent);}
+.brand-greet{font-size:11px;color:var(--sub);font-weight:400;}
+.period-chip{font-size:11px;font-weight:600;color:var(--sub);background:var(--s2);border:1px solid var(--border);padding:5px 11px;border-radius:20px;white-space:nowrap;align-self:flex-start;}
+.tabs{display:flex;gap:3px;overflow-x:auto;scrollbar-width:none;padding-bottom:0;}
+.tabs::-webkit-scrollbar{display:none;}
+.tab{flex-shrink:0;font-family:var(--font);font-size:12px;font-weight:600;padding:7px 13px;border-radius:10px 10px 0 0;border:1px solid var(--border);border-bottom:none;background:transparent;color:var(--sub);cursor:pointer;transition:all .18s;}
+.tab.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+.page{display:none;padding:16px 16px 110px;position:relative;z-index:1;}
+.page.on{display:block;}
+/* ── CARD ───────────────────────────────────────────────── */
+.card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r);padding:15px;margin-bottom:13px;}
+.card-xs{padding:11px 13px;}
+.card-title{font-size:10px;font-weight:700;letter-spacing:1.1px;text-transform:uppercase;color:var(--sub);margin-bottom:12px;}
+/* ── HERO ───────────────────────────────────────────────── */
+.hero{background:linear-gradient(140deg,#1b1836 0%,#161c2e 100%);border:1px solid rgba(123,104,245,.28);border-radius:var(--r);padding:18px;margin-bottom:13px;position:relative;overflow:hidden;}
+.hero::after{content:'';position:absolute;top:-50px;right:-50px;width:200px;height:200px;background:radial-gradient(circle,rgba(123,104,245,.18) 0%,transparent 70%);pointer-events:none;}
+.hero-hi{font-size:11px;color:rgba(238,237,245,.4);font-weight:400;margin-bottom:2px;}
+.hero-name{font-size:16px;font-weight:700;margin-bottom:11px;}
+.hero-lbl{font-size:10px;color:var(--sub);text-transform:uppercase;letter-spacing:1px;margin-bottom:4px;font-weight:600;}
+.hero-amt{font-size:30px;font-weight:800;letter-spacing:-1px;}
+.hero-amt .cur{font-size:14px;font-weight:600;color:var(--sub);margin-right:2px;}
+.hero-row{display:flex;gap:16px;margin-top:11px;flex-wrap:wrap;}
+.hero-stat{font-size:11px;color:var(--sub);}
+.hero-stat b{display:block;font-size:13px;font-weight:700;color:var(--text);margin-top:1px;}
+/* ── PROGRESS ───────────────────────────────────────────── */
+.track{height:6px;background:var(--s2);border-radius:3px;overflow:hidden;position:relative;}
+.track-tall{height:8px;}
+.fill{height:100%;border-radius:3px;transition:width .55s cubic-bezier(.4,0,.2,1);}
+.fill-green{background:var(--green);}
+.fill-yellow{background:var(--yellow);}
+.fill-red{background:var(--red);}
+.fill-blue{background:var(--blue);}
+.fill-orange{background:var(--orange);}
+.fill-accent{background:var(--accent);}
+/* minus bar overlay */
+.track-minus{height:6px;background:var(--s2);border-radius:3px;overflow:visible;position:relative;margin-top:4px;}
+.fill-minus{height:100%;position:absolute;right:0;top:0;border-radius:3px;background:var(--red);opacity:.75;}
+/* ── DANA BAR ────────────────────────────────────────────── */
+.dana-item{background:var(--s1);border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 13px;margin-bottom:8px;}
+.dana-row{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;}
+.dana-lbl{font-size:13px;font-weight:600;display:flex;align-items:center;gap:6px;}
+.dana-val{font-size:13px;font-weight:700;}
+.dana-sub{font-size:10px;color:var(--sub);margin-top:5px;}
+.btn-danger-xs{font-size:11px;font-weight:700;color:var(--red);background:rgba(240,88,95,.1);border:1px solid rgba(240,88,95,.22);padding:4px 10px;border-radius:20px;cursor:pointer;font-family:var(--font);margin-top:8px;display:inline-block;}
+/* ── KOSAN CARD ──────────────────────────────────────────── */
+.kosan-card{background:var(--s1);border:1px solid var(--border);border-radius:var(--r-sm);padding:13px;margin-bottom:8px;}
+.kosan-paid{border-color:rgba(62,207,142,.3);background:rgba(62,207,142,.04);}
+.kosan-badge{display:inline-flex;align-items:center;gap:4px;font-size:10px;font-weight:700;padding:3px 9px;border-radius:20px;letter-spacing:.4px;}
+.kosan-paid-badge{background:rgba(62,207,142,.12);color:var(--green);border:1px solid rgba(62,207,142,.25);}
+.kosan-unpaid-badge{background:rgba(240,88,95,.12);color:var(--red);border:1px solid rgba(240,88,95,.25);}
+/* ── BUDGET ITEM ─────────────────────────────────────────── */
+.bi{margin-bottom:13px;}
+.bi:last-child{margin-bottom:0;}
+.bi-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:5px;}
+.bi-name{font-size:13px;font-weight:500;display:flex;align-items:center;gap:5px;}
+.bi-right{text-align:right;}
+.bi-used{font-size:13px;font-weight:700;}
+.bi-total{font-size:10px;color:var(--sub);}
+.bi-sub{display:flex;justify-content:space-between;align-items:center;margin-top:5px;}
+.daily-lbl{font-size:10px;color:var(--sub);}
+.over-badge{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:600;color:var(--red);background:rgba(240,88,95,.1);border:1px solid rgba(240,88,95,.22);padding:2px 7px;border-radius:20px;margin-top:4px;}
+/* ── WEEK BARS ───────────────────────────────────────────── */
+.week-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;}
+.wc{text-align:center;}
+.wc-lbl{font-size:9px;color:var(--sub);letter-spacing:.8px;text-transform:uppercase;margin-bottom:7px;font-weight:600;}
+.wc-wrap{height:66px;display:flex;align-items:flex-end;justify-content:center;margin-bottom:5px;}
+.wc-bar{width:20px;border-radius:4px 4px 0 0;background:var(--accent);opacity:.55;transition:height .4s;}
+.wc.on .wc-bar{opacity:1;background:var(--orange);}
+.wc-pct{font-size:10px;font-weight:700;}
+/* ── DAILY CHART ─────────────────────────────────────────── */
+.daychart{display:flex;gap:4px;align-items:flex-end;height:60px;margin-top:8px;}
+.dcw{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.dc-outer{width:100%;background:var(--s2);border-radius:3px;overflow:hidden;height:44px;display:flex;align-items:flex-end;}
+.dc-fill{width:100%;border-radius:3px;transition:height .4s;}
+.dc-lbl{font-size:8px;color:var(--sub);font-weight:500;}
+/* ── CHIP ───────────────────────────────────────────────── */
+.chip{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;letter-spacing:.4px;}
+.chip-green{background:rgba(62,207,142,.12);color:var(--green);border:1px solid rgba(62,207,142,.22);}
+.chip-red{background:rgba(240,88,95,.12);color:var(--red);border:1px solid rgba(240,88,95,.22);}
+.chip-yellow{background:rgba(245,200,66,.12);color:var(--yellow);border:1px solid rgba(245,200,66,.22);}
+.chip-blue{background:rgba(90,173,255,.12);color:var(--blue);border:1px solid rgba(90,173,255,.22);}
+/* ── TXN ────────────────────────────────────────────────── */
+.txn{display:flex;align-items:center;gap:11px;padding:10px 0;border-bottom:1px solid var(--border);}
+.txn:last-child{border-bottom:none;}
+.txn-icon{width:36px;height:36px;border-radius:9px;background:var(--s2);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.txn-body{flex:1;min-width:0;}
+.txn-name{font-size:13px;font-weight:600;}
+.txn-cat{font-size:11px;color:var(--sub);margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.txn-reason{font-size:10px;color:var(--yellow);background:rgba(245,200,66,.08);border-radius:4px;padding:2px 6px;margin-top:3px;display:inline-block;}
+.txn-r{text-align:right;flex-shrink:0;}
+.txn-amt{font-size:13px;font-weight:700;}
+.amt-out{color:var(--red);}
+.amt-dev{color:var(--yellow);}
+.amt-dar{color:var(--blue);}
+.txn-date{font-size:10px;color:var(--sub);margin-top:1px;}
+/* ── DEVIASI ────────────────────────────────────────────── */
+.dv{padding:12px;border-radius:var(--r-sm);background:var(--s2);margin-bottom:8px;border-left:3px solid var(--red);}
+.dv-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+.dv-cat{font-size:12px;font-weight:700;}
+.dv-exc{font-size:12px;font-weight:800;color:var(--red);}
+.dv-reason{font-size:11px;color:var(--sub);line-height:1.5;}
+.dv-date{font-size:10px;color:var(--border);margin-top:4px;}
+/* ── REKOMENDASI ────────────────────────────────────────── */
+.reko-card{background:linear-gradient(135deg,#17281e 0%,#141c28 100%);border:1px solid rgba(62,207,142,.25);border-radius:var(--r);padding:15px;margin-bottom:13px;}
+.reko-title{font-size:12px;font-weight:700;color:var(--green);text-transform:uppercase;letter-spacing:.8px;margin-bottom:10px;}
+.reko-item{font-size:12px;color:rgba(238,237,245,.7);padding:5px 0;border-bottom:1px solid rgba(62,207,142,.1);line-height:1.6;}
+.reko-item:last-child{border-bottom:none;}
+.reko-item b{color:var(--green);}
+/* ── MODAL ──────────────────────────────────────────────── */
+.overlay{position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);display:flex;align-items:flex-end;justify-content:center;opacity:0;pointer-events:none;transition:opacity .22s;}
+.overlay.on{opacity:1;pointer-events:all;}
+.modal{background:var(--s1);border:1px solid var(--border);border-radius:22px 22px 0 0;padding:18px 17px 36px;width:100%;max-width:430px;transform:translateY(100%);transition:transform .28s cubic-bezier(.4,0,.2,1);max-height:92vh;overflow-y:auto;}
+.overlay.on .modal{transform:translateY(0);}
+.modal-handle{width:34px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 17px;}
+.modal-title{font-size:16px;font-weight:800;margin-bottom:16px;letter-spacing:-.2px;}
+/* ── FORM ───────────────────────────────────────────────── */
+.field{margin-bottom:12px;}
+.field label{display:block;font-size:10px;font-weight:700;color:var(--sub);letter-spacing:.8px;text-transform:uppercase;margin-bottom:6px;}
+.field input,.field select,.field textarea{width:100%;padding:11px 13px;background:var(--s2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:var(--font);font-size:14px;font-weight:500;outline:none;transition:border-color .18s;-webkit-appearance:none;appearance:none;}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--accent);}
+.field textarea{resize:none;height:66px;line-height:1.5;}
+.field select option{background:var(--s2);}
+.r2{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.warn-box{background:rgba(240,88,95,.08);border:1px solid rgba(240,88,95,.28);border-radius:var(--r-sm);padding:9px 12px;font-size:11px;color:var(--red);margin-bottom:12px;display:none;line-height:1.6;font-weight:500;}
+.warn-box.on{display:block;}
+/* ── BUTTONS ────────────────────────────────────────────── */
+.btn{width:100%;padding:13px;border:none;border-radius:var(--r-sm);font-family:var(--font);font-size:14px;font-weight:800;cursor:pointer;transition:opacity .18s;letter-spacing:.2px;}
+.btn:active{opacity:.78;}
+.btn-accent{background:var(--accent);color:#fff;}
+.btn-red{background:var(--red);color:#fff;}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--sub);margin-top:8px;}
+/* ── FAB ────────────────────────────────────────────────── */
+.fab{position:fixed;bottom:24px;right:17px;z-index:200;width:54px;height:54px;border-radius:50%;background:var(--accent);border:none;color:#fff;font-size:24px;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 8px 22px rgba(123,104,245,.42);transition:transform .18s;}
+.fab:active{transform:scale(.91);}
+/* ── SETTINGS ───────────────────────────────────────────── */
+.si{display:flex;justify-content:space-between;align-items:center;padding:11px 0;border-bottom:1px solid var(--border);}
+.si:last-child{border-bottom:none;}
+.si-lbl{font-size:13px;font-weight:600;}
+.si-val{font-size:12px;color:var(--sub);}
+/* ── MISC ───────────────────────────────────────────────── */
+.sec-lbl{font-size:10px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;margin-top:2px;}
+.sep{height:1px;background:var(--border);margin:4px 0 13px;}
+.empty{text-align:center;padding:32px 14px;color:var(--sub);}
+.empty-ico{font-size:34px;margin-bottom:9px;}
+.empty p{font-size:13px;}
+.edit-lim-btn{font-size:10px;font-weight:700;color:var(--accent);background:rgba(123,104,245,.1);border:1px solid rgba(123,104,245,.22);padding:3px 9px;border-radius:20px;cursor:pointer;font-family:var(--font);}
+@keyframes up{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
+.page.on>*{animation:up .25s ease both;}
+.page.on>*:nth-child(2){animation-delay:.04s;}
+.page.on>*:nth-child(3){animation-delay:.08s;}
+.page.on>*:nth-child(4){animation-delay:.12s;}
+.page.on>*:nth-child(5){animation-delay:.16s;}
+::-webkit-scrollbar{width:0;}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-row">
+    <div class="brand">
+      <div class="brand-name">Dompet<span>Pintar</span></div>
+      <div class="brand-greet" id="greetTxt">Halo —</div>
+    </div>
+    <div class="period-chip" id="periodChip">—</div>
+  </div>
+  <div class="tabs">
+    <button class="tab on"  onclick="go('dashboard')">Dashboard</button>
+    <button class="tab"     onclick="go('budget')">Budget</button>
+    <button class="tab"     onclick="go('harian')">Harian</button>
+    <button class="tab"     onclick="go('transactions')">Transaksi</button>
+    <button class="tab"     onclick="go('deviasi')">Deviasi</button>
+    <button class="tab"     onclick="go('settings')">Pengaturan</button>
+  </div>
+</div>
+
+<!-- ══ DASHBOARD ══════════════════════════════════════════════ -->
+<div class="page on" id="page-dashboard">
+  <div class="hero">
+    <div class="hero-hi">Selamat datang,</div>
+    <div class="hero-name" id="heroName">—</div>
+    <div class="hero-lbl">Sisa Total Dana</div>
+    <div class="hero-amt"><span class="cur">Rp</span><span id="heroSisa">0</span></div>
+    <div class="hero-row">
+      <div class="hero-stat">Alokasi<b id="heroAlloc">Rp 0</b></div>
+      <div class="hero-stat">Terpakai<b id="heroUsed">Rp 0</b></div>
+      <div class="hero-stat">Hari ke-<b id="heroDay">1</b></div>
+    </div>
+  </div>
+
+  <!-- Rekomendasi sisa -->
+  <div id="rekoWrap"></div>
+
+  <!-- Kosan status -->
+  <div id="kosanCard"></div>
+
+  <!-- Buffer + Darurat -->
+  <div>
+    <div class="dana-item">
+      <div class="dana-row">
+        <div class="dana-lbl">🛡️ Dana Buffer</div>
+        <div class="dana-val c-orange" id="bufVal">Rp 0</div>
+      </div>
+      <div class="track"><div class="fill fill-orange" id="bufBar" style="width:100%"></div></div>
+      <div class="dana-sub" id="bufSub">Cadangan deviasi</div>
+    </div>
+    <div class="dana-item">
+      <div class="dana-row">
+        <div class="dana-lbl">🚨 Dana Darurat</div>
+        <div class="dana-val c-blue" id="darVal">Rp 0</div>
+      </div>
+      <div class="track"><div class="fill fill-blue" id="darBar" style="width:100%"></div></div>
+      <div class="dana-sub" id="darSub">Tidak menyentuh kecuali darurat</div>
+      <button class="btn-danger-xs" onclick="openModal('darurat')">⚠️ Pakai Dana Darurat</button>
+    </div>
+  </div>
+
+  <!-- Donut -->
+  <div class="card">
+    <div class="card-title">Distribusi Pengeluaran</div>
+    <div style="display:flex;align-items:center;gap:16px;">
+      <svg width="100" height="100" viewBox="0 0 110 110" id="donutSvg" style="flex-shrink:0;">
+        <circle cx="55" cy="55" r="40" fill="none" stroke="var(--s2)" stroke-width="15"/>
+      </svg>
+      <div id="donutLeg" style="flex:1;display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+  </div>
+
+  <!-- Budget bars -->
+  <div class="card">
+    <div class="card-title">Status Budget</div>
+    <div id="budgetBars"></div>
+  </div>
+
+  <!-- Recent txn -->
+  <div class="card">
+    <div class="card-title">Transaksi Terbaru</div>
+    <div id="recentTxns"></div>
+  </div>
+</div>
+
+<!-- ══ BUDGET ══════════════════════════════════════════════════ -->
+<div class="page" id="page-budget">
+  <div class="card">
+    <div class="card-title">Weekly Tracker</div>
+    <div class="week-grid" id="weekGrid"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Detail Per Kelompok Dana</div>
+    <div id="budgetDetail"></div>
+  </div>
+</div>
+
+<!-- ══ HARIAN ══════════════════════════════════════════════════ -->
+<div class="page" id="page-harian">
+  <div class="card card-xs" style="background:rgba(123,104,245,.06);border-color:rgba(123,104,245,.2);margin-bottom:13px;">
+    <p class="t-sm muted" style="line-height:1.65;">Pantau limit harian (atau mingguan untuk Beras) per kelompok dana. Bar merah = melebihi limit hari itu.</p>
+  </div>
+  <div id="harianList"></div>
+</div>
+
+<!-- ══ TRANSAKSI ════════════════════════════════════════════════ -->
+<div class="page" id="page-transactions">
+  <div id="txnList"></div>
+</div>
+
+<!-- ══ DEVIASI ══════════════════════════════════════════════════ -->
+<div class="page" id="page-deviasi">
+  <div class="card card-xs" style="background:rgba(240,88,95,.06);border-color:rgba(240,88,95,.18);margin-bottom:13px;">
+    <p class="t-sm muted" style="line-height:1.65;">Semua pengeluaran melebihi batas, cross-spending, atau pemakaian dana darurat — lengkap dengan alasan evaluasi.</p>
+  </div>
+  <div id="devList"></div>
+</div>
+
+<!-- ══ PENGATURAN ══════════════════════════════════════════════ -->
+<div class="page" id="page-settings">
+  <div class="card">
+    <div class="card-title">Profil</div>
+    <div class="si"><span class="si-lbl">Nama</span><span class="si-val" id="setNama">—</span></div>
+    <div class="si"><span class="si-lbl">Gaji</span><span class="si-val" id="setGaji">Rp 0</span></div>
+    <div class="si"><span class="si-lbl">Periode</span><span class="si-val" id="setPer">—</span></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Alokasi Dana</div>
+    <div id="setAlloc"></div>
+  </div>
+  <div class="card">
+    <div class="card-title">Opsi</div>
+    <div class="si">
+      <span class="si-lbl">Buffer &amp; Darurat masuk alokasi</span>
+      <label style="position:relative;display:inline-block;width:40px;height:22px;">
+        <input type="checkbox" id="toggleBufDar" onchange="toggleBufDarInAlloc()" style="opacity:0;width:0;height:0;">
+        <span id="toggleThumb" style="position:absolute;inset:0;border-radius:11px;background:var(--s3);border:1px solid var(--border);cursor:pointer;transition:background .2s;">
+          <span id="thumbDot" style="position:absolute;left:2px;top:2px;width:16px;height:16px;border-radius:50%;background:var(--sub);transition:transform .2s;"></span>
+        </span>
+      </label>
+    </div>
+  </div>
+  <button class="btn btn-accent" onclick="openModal('gaji')">✏️ &nbsp;Edit Profil &amp; Alokasi</button>
+  <button class="btn btn-ghost" onclick="resetData()" style="margin-top:8px;">🔄 &nbsp;Reset Periode Baru</button>
+</div>
+
+<!-- FAB -->
+<button class="fab" onclick="openModal('txn')">+</button>
+
+<!-- ══ MODAL: TXN ══════════════════════════════════════════════ -->
+<div class="overlay" id="txnModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Catat Pengeluaran</div>
+    <div class="field"><label>Keterangan</label><input type="text" id="txnNote" placeholder="cth: Makan siang nasi padang"></div>
+    <div class="r2">
+      <div class="field"><label>Jumlah (Rp)</label><input type="text" inputmode="numeric" id="txnAmount" placeholder="0" oninput="fmtInput(this);checkDev()"></div>
+      <div class="field"><label>Kelompok Dana</label><select id="txnCat" onchange="checkDev()"><option value="">Pilih...</option></select></div>
+    </div>
+    <div class="field"><label>Dana Sebenarnya (cross-spending?)</label><select id="txnActual" onchange="checkDev()"><option value="">Sama seperti di atas</option></select></div>
+    <div class="warn-box" id="devWarn"></div>
+    <div class="field" id="reasonField" style="display:none"><label>Alasan *</label><textarea id="txnReason" placeholder="Tulis alasan..."></textarea></div>
+    <button class="btn btn-accent" onclick="addTxn()">Simpan</button>
+    <button class="btn btn-ghost" onclick="closeModal('txnModal')">Batal</button>
+  </div>
+</div>
+
+<!-- ══ MODAL: DARURAT ══════════════════════════════════════════ -->
+<div class="overlay" id="daruratModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🚨 Pakai Dana Darurat</div>
+    <div class="card card-xs" style="background:rgba(90,173,255,.06);border-color:rgba(90,173,255,.2);margin-bottom:13px;">
+      <p class="t-sm muted" style="line-height:1.6;">Dana darurat hanya untuk keadaan benar-benar mendesak. Setiap pemakaian wajib ada alasan dan akan masuk log Deviasi.</p>
+    </div>
+    <div class="field"><label>Keterangan</label><input type="text" id="darNote" placeholder="cth: Biaya rumah sakit mendadak"></div>
+    <div class="field"><label>Jumlah (Rp)</label><input type="text" inputmode="numeric" id="darAmt" placeholder="0" oninput="fmtInput(this)"></div>
+    <div class="field"><label>Alasan *</label><textarea id="darReason" placeholder="Jelaskan situasi darurat..."></textarea></div>
+    <div id="darErr" style="display:none;color:var(--red);font-size:12px;font-weight:600;margin-bottom:11px;"></div>
+    <button class="btn btn-red" onclick="pakaiDarurat()">Konfirmasi Pemakaian</button>
+    <button class="btn btn-ghost" onclick="closeModal('daruratModal')">Batal</button>
+  </div>
+</div>
+
+<!-- ══ MODAL: KOSAN ═══════════════════════════════════════════ -->
+<div class="overlay" id="kosanModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">🏠 Bayar Kosan</div>
+    <div class="field"><label>Jumlah Dibayar (Rp)</label><input type="text" inputmode="numeric" id="kosanAmt" placeholder="0" oninput="fmtInput(this)"></div>
+    <div id="kosanWarn" class="warn-box"></div>
+    <div class="field" id="kosanReasonField" style="display:none"><label>Alasan Melebihi Budget *</label><textarea id="kosanReason" placeholder="Tulis alasan..."></textarea></div>
+    <div id="kosanErr" style="display:none;color:var(--red);font-size:12px;font-weight:600;margin-bottom:11px;"></div>
+    <button class="btn btn-accent" onclick="bayarKosan()">Tandai Sudah Bayar</button>
+    <button class="btn btn-ghost" onclick="closeModal('kosanModal')">Batal</button>
+  </div>
+</div>
+
+<!-- ══ MODAL: LIMIT ════════════════════════════════════════════ -->
+<div class="overlay" id="limitModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="limitTitle">Edit Limit</div>
+    <div id="limitBody"></div>
+    <button class="btn btn-accent" onclick="saveLimit()">Simpan</button>
+    <button class="btn btn-ghost" onclick="closeModal('limitModal')">Batal</button>
+  </div>
+</div>
+
+<!-- ══ MODAL: SETUP ════════════════════════════════════════════ -->
+<div class="overlay" id="gajiModal">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Setup Profil &amp; Alokasi</div>
+    <div class="field"><label>Nama Kamu</label><input type="text" id="inNama" placeholder="cth: Juna Rumata"></div>
+    <div class="sep"></div>
+    <div class="field"><label>Gaji Bulan Ini (Rp)</label><input type="text" inputmode="numeric" id="inGaji" placeholder="0" oninput="fmtInput(this);calcSisa()"></div>
+    <div class="r2">
+      <div class="field"><label>Dana Buffer (Rp)</label><input type="text" inputmode="numeric" id="inBuf" placeholder="0" oninput="fmtInput(this);calcSisa()"></div>
+      <div class="field"><label>Dana Darurat (Rp)</label><input type="text" inputmode="numeric" id="inDar" placeholder="0" oninput="fmtInput(this);calcSisa()"></div>
+    </div>
+    <div class="sep"></div>
+    <div class="sec-lbl">Alokasi Per Kelompok (Rp)</div>
+    <div id="allocFields"></div>
+    <div class="card card-xs" id="sisaInfo" style="background:rgba(62,207,142,.06);border-color:rgba(62,207,142,.2);margin-top:4px;margin-bottom:13px;display:none;">
+      <p class="t-sm" style="color:var(--green);font-weight:600;line-height:1.6;" id="sisaTxt"></p>
+    </div>
+    <button class="btn btn-accent" onclick="saveSetup()">Simpan</button>
+    <button class="btn btn-ghost" onclick="closeModal('gajiModal')">Batal</button>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════
+   SERVICE WORKER REGISTER
+═══════════════════════════════════════════════════════════ */
+if('serviceWorker' in navigator){
+  navigator.serviceWorker.register('sw.js').catch(()=>{});
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DATA MODEL
+═══════════════════════════════════════════════════════════ */
+const CATS=[
+  {id:'makan',     lbl:'Dana Makan',       ico:'🍽️', limitType:'daily'},
+  {id:'beras',     lbl:'Dana Beras',        ico:'🌾', limitType:'weekly'},
+  {id:'kosan',     lbl:'Dana Kosan',        ico:'🏠', limitType:'monthly'},
+  {id:'operasional',lbl:'Dana Operasional', ico:'⚙️', limitType:'daily'},
+  {id:'selfcare',  lbl:'Self Maintenance',  ico:'💆', limitType:'daily'},
+  {id:'jajan',     lbl:'Dana Jajan',        ico:'🧃', limitType:'daily'},
+  {id:'kuota',     lbl:'Dana Kuota',        ico:'📶', limitType:'monthly'},
+];
+const COLORS=['#7b68f5','#f5904a','#3ecf8e','#f0585f','#f5c842','#5aadff','#f472b6'];
+
+function freshState(){
+  const now=new Date();
+  return {
+    nama:'',gaji:0,buffer:0,darurat:0,daruratAwal:0,
+    bufDarInAlloc:false,
+    periode:now.toISOString().slice(0,7),
+    alokasi:Object.fromEntries(CATS.map(c=>[c.id,0])),
+    limitCustom:Object.fromEntries(CATS.map(c=>[c.id,0])),
+    kosanPaid:false,kosanAmt:0,kosanReason:'',
+    transactions:[],deviasi:[]
+  };
+}
+
+let S=loadS();
+let editLimitCat=null;
+
+function loadS(){
+  try{const d=localStorage.getItem('dp3');return d?JSON.parse(d):freshState();}
+  catch{return freshState();}
+}
+function save(){localStorage.setItem('dp3',JSON.stringify(S));}
+
+/* ═══════════════════════════════════════════════════════════
+   HELPERS
+═══════════════════════════════════════════════════════════ */
+function numRaw(s){return parseFloat(String(s).replace(/\./g,'').replace(',','.'))||0;}
+function fmt(n){return Math.abs(n||0).toLocaleString('id-ID');}
+function rp(n){return 'Rp '+fmt(n);}
+function gc(id){return CATS.find(c=>c.id===id);}
+function dom(id){return document.getElementById(id);}
+
+/* Format input ribuan otomatis */
+function fmtInput(el){
+  const raw=el.value.replace(/\D/g,'');
+  el.value=raw?parseInt(raw,10).toLocaleString('id-ID'):'';
+}
+
+function usedInCat(id){
+  return S.transactions.filter(t=>(t.actualCat||t.cat)===id&&!t.isDarurat).reduce((s,t)=>s+t.amount,0);
+}
+function usedToday(id){
+  const td=new Date().toDateString();
+  return S.transactions.filter(t=>(t.actualCat||t.cat)===id&&new Date(t.date).toDateString()===td).reduce((s,t)=>s+t.amount,0);
+}
+function usedThisWeek(id){
+  const now=new Date(),day=now.getDay();
+  const mon=new Date(now);mon.setDate(now.getDate()-((day+6)%7));mon.setHours(0,0,0,0);
+  return S.transactions.filter(t=>(t.actualCat||t.cat)===id&&new Date(t.date)>=mon).reduce((s,t)=>s+t.amount,0);
+}
+
+function totalAllocCats(){
+  // exclude kosan from rolling alokasi (it's paid once)
+  return CATS.filter(c=>c.id!=='kosan'&&c.id!=='kuota').reduce((s,c)=>s+(S.alokasi[c.id]||0),0)
+    + (S.alokasi['kosan']||0) + (S.alokasi['kuota']||0);
+}
+function totalAlloc(){
+  let t=Object.values(S.alokasi).reduce((s,v)=>s+v,0);
+  if(S.bufDarInAlloc) t+=S.buffer+S.darurat;
+  return t;
+}
+function totalUsed(){return S.transactions.reduce((s,t)=>s+t.amount,0);}
+function sisa(){return totalAlloc()-totalUsed();}
+
+function daysInMonth(){const n=new Date();return new Date(n.getFullYear(),n.getMonth()+1,0).getDate();}
+function getDay(){return new Date().getDate();}
+function periodeLabel(){
+  const[y,m]=S.periode.split('-');
+  return ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'][parseInt(m)-1]+' '+y;
+}
+
+function getLimitEff(catId){
+  const cat=gc(catId);
+  const custom=S.limitCustom[catId]||0;
+  const alloc=S.alokasi[catId]||0;
+  if(custom>0) return custom;
+  if(cat?.limitType==='weekly') return alloc>0?Math.round(alloc/(daysInMonth()/7)):0;
+  if(cat?.limitType==='monthly') return alloc;
+  return alloc>0?Math.round(alloc/daysInMonth()):0;
+}
+function getUsedForLimit(catId){
+  const cat=gc(catId);
+  if(cat?.limitType==='weekly') return usedThisWeek(catId);
+  if(cat?.limitType==='monthly') return usedInCat(catId);
+  return usedToday(catId);
+}
+
+/* ═══════════════════════════════════════════════════════════
+   NAVIGATION
+═══════════════════════════════════════════════════════════ */
+function go(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
+  dom('page-'+id).classList.add('on');
+  const tabs=['dashboard','budget','harian','transactions','deviasi','settings'];
+  document.querySelectorAll('.tab')[tabs.indexOf(id)].classList.add('on');
+  render(id);
+}
+function render(id){
+  if(id==='dashboard') renderDash();
+  if(id==='budget') renderBudget();
+  if(id==='harian') renderHarian();
+  if(id==='transactions') renderTxns();
+  if(id==='deviasi') renderDev();
+  if(id==='settings') renderSettings();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   MODALS
+═══════════════════════════════════════════════════════════ */
+function openModal(t){
+  if(t==='txn'){buildCatOpts();['txnNote','txnReason'].forEach(i=>dom(i).value='');dom('txnAmount').value='';dom('devWarn').classList.remove('on');dom('reasonField').style.display='none';dom('txnModal').classList.add('on');}
+  if(t==='gaji'){buildSetupForm();dom('gajiModal').classList.add('on');}
+  if(t==='darurat'){['darNote','darReason'].forEach(i=>dom(i).value='');dom('darAmt').value='';dom('darErr').style.display='none';dom('daruratModal').classList.add('on');}
+  if(t==='kosan'){dom('kosanAmt').value='';dom('kosanReason').value='';dom('kosanWarn').classList.remove('on');dom('kosanReasonField').style.display='none';dom('kosanErr').style.display='none';dom('kosanModal').classList.add('on');}
+}
+function closeModal(id){dom(id).classList.remove('on');}
+document.querySelectorAll('.overlay').forEach(el=>el.addEventListener('click',e=>{if(e.target===el)el.classList.remove('on');}));
+
+/* ═══════════════════════════════════════════════════════════
+   CATEGORY OPTIONS
+═══════════════════════════════════════════════════════════ */
+function buildCatOpts(){
+  const s=dom('txnCat'),s2=dom('txnActual');
+  s.innerHTML='<option value="">Pilih...</option>';
+  s2.innerHTML='<option value="">Sama seperti di atas</option>';
+  CATS.forEach(c=>{
+    const u=usedInCat(c.id),a=S.alokasi[c.id]||0;
+    s.innerHTML+=`<option value="${c.id}">${c.ico} ${c.lbl} (sisa ${rp(a-u)})</option>`;
+    s2.innerHTML+=`<option value="${c.id}">${c.ico} ${c.lbl}</option>`;
+  });
+}
+
+/* ═══════════════════════════════════════════════════════════
+   CHECK DEVIATION
+═══════════════════════════════════════════════════════════ */
+function checkDev(){
+  const amt=numRaw(dom('txnAmount').value);
+  const catId=dom('txnCat').value;
+  const actual=dom('txnActual').value||catId;
+  const msgs=[];
+  if(catId&&actual){
+    const u=usedInCat(actual),a=S.alokasi[actual]||0;
+    if(amt+u>a) msgs.push(`⚠️ Melebihi batas bulanan ${rp((amt+u)-a)}`);
+    const ul=getUsedForLimit(actual),lim=getLimitEff(actual);
+    const cat=gc(actual);
+    const limLbl=cat?.limitType==='weekly'?'mingguan':cat?.limitType==='monthly'?'bulanan':'harian';
+    if(lim>0&&amt+ul>lim) msgs.push(`📅 Melebihi limit ${limLbl} ${rp((amt+ul)-lim)}`);
+  }
+  if(actual&&actual!==catId&&actual!=='') msgs.push(`🔄 Cross-spending ke ${gc(actual)?.lbl}`);
+  const w=dom('devWarn'),rf=dom('reasonField');
+  if(msgs.length){w.classList.add('on');w.innerHTML=msgs.join('<br>');rf.style.display='block';}
+  else{w.classList.remove('on');rf.style.display='none';}
+}
+
+/* ═══════════════════════════════════════════════════════════
+   ADD TRANSACTION
+═══════════════════════════════════════════════════════════ */
+function addTxn(){
+  const note=dom('txnNote').value.trim();
+  const amt=numRaw(dom('txnAmount').value);
+  const catId=dom('txnCat').value;
+  const actual=dom('txnActual').value||catId;
+  const reason=dom('txnReason').value.trim();
+  if(!note){alert('Keterangan wajib diisi!');return;}
+  if(!amt){alert('Jumlah wajib diisi!');return;}
+  if(!catId){alert('Pilih kelompok dana!');return;}
+
+  const u=usedInCat(actual),a=S.alokasi[actual]||0;
+  const ul=getUsedForLimit(actual),lim=getLimitEff(actual);
+  const cat=gc(actual);
+  const isCross=actual!==catId;
+  const isOver=amt+u>a;
+  const isLimOver=lim>0&&amt+ul>lim;
+  const isDailyOver=cat?.limitType==='daily'&&isLimOver;
+  const isWeeklyOver=cat?.limitType==='weekly'&&isLimOver;
+
+  if((isOver||isCross||isLimOver)&&!reason){alert('Ada deviasi. Wajib isi alasan!');return;}
+
+  const txn={id:Date.now(),note,amount:amt,cat:catId,actualCat:actual,reason:reason||null,
+    isCross:!!isCross,isOver,isDailyOver,isWeeklyOver,date:new Date().toISOString(),isDarurat:false};
+  S.transactions.unshift(txn);
+
+  if(isOver||isCross||isLimOver){
+    const excess=isOver?(amt+u)-a:amt;
+    S.deviasi.unshift({id:Date.now(),catLbl:gc(catId)?.lbl||catId,actualLbl:gc(actual)?.lbl||actual,
+      excess,reason,isCross:!!isCross,isOver,isDailyOver,isWeeklyOver,date:txn.date});
+  }
+  save();closeModal('txnModal');renderDash();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   KOSAN
+═══════════════════════════════════════════════════════════ */
+function openKosan(){
+  if(S.kosanPaid){alert('Kosan sudah dibayar bulan ini!');return;}
+  openModal('kosan');
+}
+dom('kosanAmt').addEventListener?.('input',()=>{
+  const amt=numRaw(dom('kosanAmt').value);
+  const budget=S.alokasi['kosan']||0;
+  const w=dom('kosanWarn'),rf=dom('kosanReasonField');
+  if(budget>0&&amt>budget){w.classList.add('on');w.innerHTML=`⚠️ Melebihi budget kosan ${rp(amt-budget)}`;rf.style.display='block';}
+  else{w.classList.remove('on');rf.style.display='none';}
+});
+function bayarKosan(){
+  const amt=numRaw(dom('kosanAmt').value);
+  const reason=dom('kosanReason').value.trim();
+  const budget=S.alokasi['kosan']||0;
+  const e=dom('kosanErr');
+  if(!amt){e.textContent='Jumlah wajib diisi!';e.style.display='block';return;}
+  if(budget>0&&amt>budget&&!reason){e.textContent='Melebihi budget, wajib isi alasan!';e.style.display='block';return;}
+  S.kosanPaid=true;S.kosanAmt=amt;S.kosanReason=reason;
+  const txn={id:Date.now(),note:'Bayar Kosan',amount:amt,cat:'kosan',actualCat:'kosan',
+    reason:reason||null,isCross:false,isOver:amt>budget,isDailyOver:false,isWeeklyOver:false,
+    date:new Date().toISOString(),isDarurat:false};
+  S.transactions.unshift(txn);
+  if(amt>budget&&reason){
+    S.deviasi.unshift({id:Date.now(),catLbl:'Dana Kosan',actualLbl:'Dana Kosan',
+      excess:amt-budget,reason,isCross:false,isOver:true,isDailyOver:false,date:txn.date});
+  }
+  save();closeModal('kosanModal');renderDash();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DANA DARURAT
+═══════════════════════════════════════════════════════════ */
+function pakaiDarurat(){
+  const note=dom('darNote').value.trim();
+  const amt=numRaw(dom('darAmt').value);
+  const reason=dom('darReason').value.trim();
+  const e=dom('darErr');
+  if(!note){e.textContent='Keterangan wajib diisi!';e.style.display='block';return;}
+  if(!amt){e.textContent='Jumlah wajib diisi!';e.style.display='block';return;}
+  if(!reason){e.textContent='Alasan wajib diisi!';e.style.display='block';return;}
+  if(amt>S.darurat){e.textContent=`Melebihi saldo darurat! Tersisa ${rp(S.darurat)}`;e.style.display='block';return;}
+  S.darurat-=amt;
+  const txn={id:Date.now(),note,amount:amt,cat:'darurat',actualCat:'darurat',
+    reason,isCross:false,isOver:false,isDailyOver:false,isWeeklyOver:false,
+    date:new Date().toISOString(),isDarurat:true};
+  S.transactions.unshift(txn);
+  S.deviasi.unshift({id:Date.now(),catLbl:'🚨 Dana Darurat',actualLbl:'—',
+    excess:amt,reason,isCross:false,isOver:false,isDarurat:true,date:txn.date});
+  save();closeModal('daruratModal');renderDash();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   LIMIT MODAL
+═══════════════════════════════════════════════════════════ */
+function openLimitModal(catId){
+  editLimitCat=catId;
+  const cat=gc(catId);
+  const alloc=S.alokasi[catId]||0;
+  const autoLim=cat?.limitType==='weekly'?Math.round(alloc/(daysInMonth()/7)):cat?.limitType==='monthly'?alloc:Math.round(alloc/daysInMonth());
+  const limLbl=cat?.limitType==='weekly'?'Mingguan':cat?.limitType==='monthly'?'Bulanan':'Harian';
+  dom('limitTitle').textContent=`${cat?.ico} Limit ${limLbl} — ${cat?.lbl}`;
+  dom('limitBody').innerHTML=`
+    <div class="field"><label>Limit ${limLbl} (Rp)</label><input type="text" inputmode="numeric" id="limIn" value="${fmt(S.limitCustom[catId]||0)}" oninput="fmtInput(this)"></div>
+    <p class="t-sm muted" style="margin-bottom:13px;line-height:1.7;">Auto dari alokasi: <b style="color:var(--accent)">${rp(autoLim)}</b> / ${limLbl.toLowerCase()}<br>Isi 0 untuk pakai nilai otomatis.</p>`;
+  dom('limitModal').classList.add('on');
+}
+function saveLimit(){
+  if(!editLimitCat)return;
+  S.limitCustom[editLimitCat]=numRaw(dom('limIn').value);
+  save();closeModal('limitModal');renderHarian();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SETUP FORM
+═══════════════════════════════════════════════════════════ */
+function buildSetupForm(){
+  dom('inNama').value=S.nama||'';
+  dom('inGaji').value=S.gaji?fmt(S.gaji):'';
+  dom('inBuf').value=S.buffer?fmt(S.buffer):'';
+  dom('inDar').value=S.darurat?fmt(S.darurat):'';
+  dom('allocFields').innerHTML=CATS.map(c=>`
+    <div class="field"><label>${c.ico} ${c.lbl}</label>
+    <input type="text" inputmode="numeric" id="al_${c.id}" value="${S.alokasi[c.id]?fmt(S.alokasi[c.id]):''}" placeholder="0" oninput="fmtInput(this);calcSisa()"></div>`).join('');
+  calcSisa();
+}
+function calcSisa(){
+  const g=numRaw(dom('inGaji').value);
+  const b=numRaw(dom('inBuf').value);
+  const d=numRaw(dom('inDar').value);
+  const allocSum=CATS.reduce((s,c)=>s+numRaw(dom('al_'+c.id)?.value||'0'),0);
+  const bufDar=S.bufDarInAlloc?0:b+d;
+  const remaining=g-allocSum-bufDar;
+  const box=dom('sisaInfo'),txt=dom('sisaTxt');
+  if(g>0){
+    box.style.display='block';
+    if(remaining>0) txt.innerHTML=`💰 Sisa <b>${rp(remaining)}</b> belum dialokasikan — lihat rekomendasi setelah simpan.`;
+    else if(remaining<0) txt.innerHTML=`⚠️ Alokasi melebihi gaji sebesar <b>${rp(Math.abs(remaining))}</b>`;
+    else txt.innerHTML=`✅ Alokasi tepat sesuai gaji!`;
+  } else box.style.display='none';
+}
+function saveSetup(){
+  const newDar=numRaw(dom('inDar').value);
+  S.nama=dom('inNama').value.trim();
+  S.gaji=numRaw(dom('inGaji').value);
+  S.buffer=numRaw(dom('inBuf').value);
+  S.darurat=newDar;
+  if(!S.daruratAwal)S.daruratAwal=newDar;
+  CATS.forEach(c=>{S.alokasi[c.id]=numRaw(dom('al_'+c.id).value);});
+  save();closeModal('gajiModal');renderDash();renderSettings();
+}
+
+function toggleBufDarInAlloc(){
+  S.bufDarInAlloc=dom('toggleBufDar').checked;
+  const dot=dom('thumbDot'),thumb=dom('toggleThumb');
+  if(S.bufDarInAlloc){thumb.style.background='var(--accent)';dot.style.transform='translateX(18px)';}
+  else{thumb.style.background='var(--s3)';dot.style.transform='translateX(0)';}
+  save();renderDash();
+}
+
+function resetData(){
+  if(!confirm('Reset periode baru? Semua transaksi akan dihapus.'))return;
+  S.transactions=[];S.deviasi=[];S.kosanPaid=false;S.kosanAmt=0;S.kosanReason='';
+  S.periode=new Date().toISOString().slice(0,7);
+  S.daruratAwal=S.darurat;
+  save();renderDash();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RENDER DASHBOARD
+═══════════════════════════════════════════════════════════ */
+function renderDash(){
+  dom('greetTxt').textContent='Halo, '+(S.nama||'—')+' 👋';
+  dom('periodChip').textContent=periodeLabel();
+  dom('heroName').textContent=S.nama||'—';
+  dom('heroSisa').textContent=fmt(sisa());
+  dom('heroAlloc').textContent=rp(totalAlloc());
+  dom('heroUsed').textContent=rp(totalUsed());
+  dom('heroDay').textContent=getDay();
+
+  // Buffer
+  dom('bufVal').textContent=rp(S.buffer);
+  dom('bufSub').textContent='Cadangan deviasi';
+
+  // Darurat bar
+  const da=S.daruratAwal||S.darurat||1;
+  dom('darVal').textContent=rp(S.darurat);
+  dom('darBar').style.width=Math.max(0,Math.min(100,(S.darurat/da)*100))+'%';
+  const used_d=da-S.darurat;
+  dom('darSub').innerHTML=used_d>0?`Terpakai <b style="color:var(--red)">${rp(used_d)}</b> — sisa ${rp(S.darurat)}`:'Tidak menyentuh kecuali darurat';
+
+  // Kosan card
+  const kBudget=S.alokasi['kosan']||0;
+  dom('kosanCard').innerHTML=`
+    <div class="kosan-card ${S.kosanPaid?'kosan-paid':''}">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <div style="font-size:13px;font-weight:700;">🏠 Dana Kosan</div>
+        <span class="kosan-badge ${S.kosanPaid?'kosan-paid-badge':'kosan-unpaid-badge'}">${S.kosanPaid?'✓ LUNAS':'BELUM BAYAR'}</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--sub);margin-bottom:8px;">
+        <span>Budget: <b style="color:var(--text)">${rp(kBudget)}</b></span>
+        ${S.kosanPaid?`<span>Dibayar: <b style="color:${S.kosanAmt>kBudget?'var(--red)':'var(--green)'}">${rp(S.kosanAmt)}</b></span>`:''}
+      </div>
+      ${S.kosanPaid&&S.kosanAmt>kBudget?`<div class="over-badge">⚠️ Lebih ${rp(S.kosanAmt-kBudget)}</div>`:''}
+      ${!S.kosanPaid?`<button onclick="openKosan()" style="font-size:11px;font-weight:700;color:var(--accent);background:rgba(123,104,245,.1);border:1px solid rgba(123,104,245,.22);padding:4px 11px;border-radius:20px;cursor:pointer;font-family:var(--font);margin-top:2px;">💳 Tandai Bayar</button>`:''}
+    </div>`;
+
+  renderReko();
+  renderDonut();
+  renderBudgetBars();
+  renderRecentTxns();
+}
+
+/* ═══════════════════════════════════════════════════════════
+   REKOMENDASI SISA
+═══════════════════════════════════════════════════════════ */
+function renderReko(){
+  const allocTotal=Object.values(S.alokasi).reduce((s,v)=>s+v,0);
+  const bufDar=S.bufDarInAlloc?0:S.buffer+S.darurat;
+  const remaining=S.gaji-allocTotal-bufDar;
+  if(!S.gaji||remaining<=0){dom('rekoWrap').innerHTML='';return;}
+
+  const tips=[];
+  const darTarget=S.gaji*0.1;
+  if(S.darurat<darTarget) tips.push(`Tambah <b>Dana Darurat</b> sebesar <b>${rp(Math.min(remaining,darTarget-S.darurat))}</b> (idealnya 10% gaji)`);
+  if(S.buffer<S.gaji*0.05) tips.push(`Perkuat <b>Dana Buffer</b> — idealnya 5% gaji (~${rp(S.gaji*0.05)})`);
+  tips.push(`Simpan <b>${rp(remaining)}</b> sebagai tabungan atau investasi`);
+
+  dom('rekoWrap').innerHTML=`
+    <div class="reko-card">
+      <div class="reko-title">💡 Sisa ${rp(remaining)} — Rekomendasi</div>
+      ${tips.map(t=>`<div class="reko-item">• ${t}</div>`).join('')}
+    </div>`;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DONUT
+═══════════════════════════════════════════════════════════ */
+function renderDonut(){
+  const svg=dom('donutSvg'),leg=dom('donutLeg');
+  const total=totalUsed();
+  let c='<circle cx="55" cy="55" r="40" fill="none" stroke="var(--s2)" stroke-width="15"/>';
+  let l='';
+  let cum=0;
+  const circ=2*Math.PI*40;
+  const items=CATS.map((cat,i)=>({...cat,used:usedInCat(cat.id),color:COLORS[i]})).filter(x=>x.used>0);
+  if(!items.length){leg.innerHTML='<p class="t-sm muted">Belum ada data</p>';svg.innerHTML=c;return;}
+  items.forEach(x=>{
+    const p=x.used/total,dash=p*circ,gap=circ-dash,off=-(cum*circ);
+    c+=`<circle cx="55" cy="55" r="40" fill="none" stroke="${x.color}" stroke-width="15" stroke-dasharray="${dash} ${gap}" stroke-dashoffset="${off}" transform="rotate(-90 55 55)"/>`;
+    cum+=p;
+    l+=`<div style="display:flex;align-items:center;gap:6px;font-size:11px;">
+      <div style="width:7px;height:7px;border-radius:50%;background:${x.color};flex-shrink:0;"></div>
+      <span>${x.ico} ${x.lbl.replace('Dana ','')}</span>
+      <span style="margin-left:auto;font-weight:700;color:${x.color};">${Math.round(p*100)}%</span></div>`;
+  });
+  svg.innerHTML=c+`<text x="55" y="51" text-anchor="middle" fill="var(--sub)" font-size="8" font-family="Plus Jakarta Sans">Terpakai</text>
+    <text x="55" y="64" text-anchor="middle" fill="var(--text)" font-size="10.5" font-weight="800" font-family="Plus Jakarta Sans">${fmt(total/1000)}rb</text>`;
+  leg.innerHTML=l;
+}
+
+/* ═══════════════════════════════════════════════════════════
+   BUDGET BARS (DASHBOARD)
+═══════════════════════════════════════════════════════════ */
+function renderBudgetBars(){
+  dom('budgetBars').innerHTML=CATS.filter(c=>c.id!=='kosan').map(c=>{
+    const a=S.alokasi[c.id]||0,u=usedInCat(c.id),pct=a>0?Math.min(u/a*100,100):0;
+    const over=u>a,warn=pct>=80&&!over;
+    const fillCls=over?'fill-red':warn?'fill-yellow':'fill-green';
+    const uc=getUsedForLimit(c.id),lim=getLimitEff(c.id);
+    const limOver=lim>0&&uc>lim;
+    const excess=uc-lim;
+    const excessPct=lim>0?Math.min((excess/lim)*100,100):0;
+    return `<div class="bi">
+      <div class="bi-head">
+        <div class="bi-name">${c.ico} ${c.lbl}</div>
+        <div class="bi-right">
+          <div class="bi-used" style="color:${over?'var(--red)':warn?'var(--yellow)':'var(--green)'}">${rp(u)}</div>
+          <div class="bi-total">/ ${rp(a)}</div>
+        </div>
+      </div>
+      <div class="track"><div class="fill ${fillCls}" style="width:${pct}%"></div></div>
+      ${limOver?`<div class="track-minus"><div class="fill-minus" style="width:${excessPct}%"></div></div>`:''}
+      ${over?`<div class="over-badge">⚠️ Over ${rp(u-a)}</div>`:''}
+      <div class="bi-sub"><div class="daily-lbl ${limOver?'c-red':'muted'}">📅 ${gc(c.id)?.limitType==='weekly'?'Minggu':'Hari'} ini: ${rp(uc)} / limit ${rp(lim)}</div></div>
+    </div>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   RECENT TXN
+═══════════════════════════════════════════════════════════ */
+function renderRecentTxns(){
+  const el=dom('recentTxns');
+  const rec=S.transactions.slice(0,5);
+  if(!rec.length){el.innerHTML='<div class="empty"><div class="empty-ico">💸</div><p>Belum ada transaksi</p></div>';return;}
+  el.innerHTML=rec.map(t=>{
+    const cat=gc(t.cat);
+    const dt=new Date(t.date).toLocaleDateString('id-ID',{day:'numeric',month:'short'});
+    const ac=t.isDarurat?'amt-dar':(t.isOver||t.isCross||t.isDailyOver||t.isWeeklyOver)?'amt-dev':'amt-out';
+    return `<div class="txn">
+      <div class="txn-icon">${t.isDarurat?'🚨':cat?.ico||'💰'}</div>
+      <div class="txn-body">
+        <div class="txn-name">${t.note}</div>
+        <div class="txn-cat">${t.isDarurat?'Dana Darurat':cat?.lbl||t.cat}</div>
+        ${t.reason?`<div class="txn-reason">⚠️ ${t.reason.substring(0,40)}${t.reason.length>40?'...':''}</div>`:''}
+      </div>
+      <div class="txn-r">
+        <div class="txn-amt ${ac}">-${rp(t.amount)}</div>
+        <div class="txn-date">${dt}</div>
+      </div></div>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   BUDGET PAGE
+═══════════════════════════════════════════════════════════ */
+function renderBudget(){
+  const ta=totalAlloc(),day=getDay();
+  const wp=[0,0,0,0];
+  S.transactions.forEach(t=>{const d=new Date(t.date).getDate();wp[Math.min(3,Math.ceil(d/7)-1)]+=t.amount;});
+  const wa=ta/4;
+  dom('weekGrid').innerHTML=['Mg 1','Mg 2','Mg 3','Mg 4 ▸'].map((w,i)=>{
+    const pct=wa>0?Math.min(Math.round(wp[i]/wa*100),120):0,h=Math.max(3,pct*.55);
+    return `<div class="wc ${i===Math.min(3,Math.ceil(day/7)-1)?'on':''}">
+      <div class="wc-lbl">${w}</div>
+      <div class="wc-wrap"><div class="wc-bar" style="height:${h}px"></div></div>
+      <div class="wc-pct">${pct}%</div></div>`;
+  }).join('');
+
+  dom('budgetDetail').innerHTML=CATS.map(c=>{
+    const a=S.alokasi[c.id]||0,u=usedInCat(c.id),s=a-u;
+    const pct=a>0?Math.min(u/a*100,100):0;
+    const over=u>a,fc=over?'fill-red':(pct>=80?'fill-yellow':'fill-green');
+    const cc=over?'chip-red':(pct>=80?'chip-yellow':'chip-green');
+    const lim=getLimitEff(c.id);
+    if(c.id==='kosan'){
+      return `<div style="padding:12px 0;border-bottom:1px solid var(--border)">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
+          <div style="font-size:13px;font-weight:700;">${c.ico} ${c.lbl}</div>
+          <span class="chip ${S.kosanPaid?'chip-green':'chip-red'}">${S.kosanPaid?'LUNAS':'BELUM BAYAR'}</span>
+        </div>
+        <div style="font-size:11px;color:var(--sub);">Budget: <b style="color:var(--text)">${rp(a)}</b>${S.kosanPaid?' | Dibayar: <b style="color:'+(S.kosanAmt>a?'var(--red)':'var(--green)')+'">'+rp(S.kosanAmt)+'</b>':''}</div>
+      </div>`;
+    }
+    return `<div style="padding:12px 0;border-bottom:1px solid var(--border)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:7px;">
+        <div style="font-size:13px;font-weight:700;">${c.ico} ${c.lbl}</div>
+        <span class="chip ${cc}">${over?'OVER':pct>=80?'HAMPIR':'AMAN'}</span>
+      </div>
+      <div class="track track-tall" style="margin-bottom:7px;"><div class="fill ${fc}" style="width:${pct}%"></div></div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--sub);margin-bottom:3px;">
+        <span>Terpakai: <b style="color:var(--text)">${rp(u)}</b></span>
+        <span>Sisa: <b style="color:${s<0?'var(--red)':'var(--green)'}">${rp(Math.abs(s))}${s<0?' (-)':''}</b></span>
+      </div>
+      <div style="font-size:10px;color:var(--sub);">📅 Limit ${c.limitType==='weekly'?'mingguan':c.limitType==='monthly'?'bulanan':'harian'}: <b style="color:var(--accent)">${rp(lim)}</b></div>
+    </div>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   HARIAN PAGE
+═══════════════════════════════════════════════════════════ */
+function renderHarian(){
+  const today=new Date();
+  dom('harianList').innerHTML=CATS.filter(c=>c.id!=='kosan').map(c=>{
+    const lim=getLimitEff(c.id);
+    const uc=getUsedForLimit(c.id);
+    const pct=lim>0?Math.min(uc/lim*100,100):0;
+    const over=uc>lim&&lim>0;
+    const warn=pct>=80&&!over;
+    const fc=over?'fill-red':warn?'fill-yellow':'fill-green';
+    const excess=over?uc-lim:0;
+    const excessPct=lim>0?Math.min((excess/lim)*100,100):0;
+    const limLbl=c.limitType==='weekly'?'Minggu ini':c.limitType==='monthly'?'Bulan ini':'Hari ini';
+    const periodLbl=c.limitType==='weekly'?'mingguan':c.limitType==='monthly'?'bulanan':'harian';
+
+    // 7 day / 4 week bars
+    let bars='';
+    if(c.limitType==='weekly'){
+      // 4 weeks
+      const weeks=[];
+      for(let w=3;w>=0;w--){
+        const wStart=new Date(today);
+        const curDay=today.getDay();
+        const daysBack=((curDay+6)%7)+w*7;
+        wStart.setDate(today.getDate()-daysBack);wStart.setHours(0,0,0,0);
+        const wEnd=new Date(wStart);wEnd.setDate(wStart.getDate()+7);
+        const v=S.transactions.filter(t=>(t.actualCat||t.cat)===c.id&&new Date(t.date)>=wStart&&new Date(t.date)<wEnd).reduce((s,t)=>s+t.amount,0);
+        weeks.unshift({label:'W'+(4-w),val:v});
+      }
+      const mx=Math.max(...weeks.map(x=>x.val),lim,1);
+      bars=weeks.map((x,i)=>{
+        const h=Math.round((x.val/mx)*44);
+        const isNow=i===3;
+        const io=x.val>lim&&lim>0;
+        return `<div class="dcw"><div class="dc-outer"><div class="dc-fill" style="height:${h}px;background:${io?'var(--red)':isNow?'var(--accent)':'var(--s3)'};"></div></div><div class="dc-lbl">${x.label}</div></div>`;
+      }).join('');
+    } else {
+      // 7 days
+      const last7=[];
+      for(let i=6;i>=0;i--){
+        const d=new Date(today);d.setDate(d.getDate()-i);
+        const ds=d.toDateString();
+        const v=S.transactions.filter(t=>(t.actualCat||t.cat)===c.id&&new Date(t.date).toDateString()===ds).reduce((s,t)=>s+t.amount,0);
+        last7.push({label:['Min','Sen','Sel','Rab','Kam','Jum','Sab'][d.getDay()],val:v});
+      }
+      const mx=Math.max(...last7.map(x=>x.val),lim,1);
+      bars=last7.map((x,i)=>{
+        const h=Math.round((x.val/mx)*44);
+        const isToday=i===6;
+        const io=x.val>lim&&lim>0;
+        return `<div class="dcw"><div class="dc-outer"><div class="dc-fill" style="height:${h}px;background:${io?'var(--red)':isToday?'var(--accent)':'var(--s3)'};"></div></div><div class="dc-lbl">${x.label}</div></div>`;
+      }).join('');
+    }
+
+    return `<div class="card" style="margin-bottom:12px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+        <div style="font-size:13px;font-weight:700;">${c.ico} ${c.lbl}</div>
+        <button class="edit-lim-btn" onclick="openLimitModal('${c.id}')">✏️ Edit Limit</button>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--sub);margin-bottom:6px;">
+        <span>${limLbl}: <b style="color:${over?'var(--red)':'var(--text)'}">${rp(uc)}</b></span>
+        <span>Limit ${periodLbl}: <b style="color:var(--accent)">${rp(lim)}</b></span>
+      </div>
+      <div class="track" style="margin-bottom:${over?'4px':'10px'};"><div class="fill ${fc}" style="width:${pct}%"></div></div>
+      ${over?`<div class="track-minus" style="margin-bottom:10px;"><div class="fill-minus" style="width:${excessPct}%"></div></div>`:''}
+      ${over?`<p style="font-size:10px;color:var(--red);font-weight:600;margin-bottom:8px;">⚠️ Melebihi limit ${rp(excess)}</p>`:''}
+      <p style="font-size:10px;color:var(--sub);margin-bottom:5px;">${c.limitType==='weekly'?'4 Minggu Terakhir':'7 Hari Terakhir'}</p>
+      <div class="daychart">${bars}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   TRANSACTIONS PAGE
+═══════════════════════════════════════════════════════════ */
+function renderTxns(){
+  const el=dom('txnList');
+  if(!S.transactions.length){el.innerHTML='<div class="card"><div class="empty"><div class="empty-ico">🧾</div><p>Belum ada transaksi</p></div></div>';return;}
+  const grp={};
+  S.transactions.forEach(t=>{
+    const k=new Date(t.date).toLocaleDateString('id-ID',{weekday:'short',day:'numeric',month:'long'});
+    if(!grp[k])grp[k]=[];grp[k].push(t);
+  });
+  el.innerHTML=Object.entries(grp).map(([d,txns])=>`
+    <div class="sec-lbl">${d}</div>
+    <div class="card" style="padding:8px 12px;">
+      ${txns.map(t=>{
+        const cat=gc(t.cat);
+        const ac=t.isDarurat?'amt-dar':(t.isOver||t.isCross||t.isDailyOver||t.isWeeklyOver)?'amt-dev':'amt-out';
+        return `<div class="txn">
+          <div class="txn-icon">${t.isDarurat?'🚨':cat?.ico||'💰'}</div>
+          <div class="txn-body">
+            <div class="txn-name">${t.note}</div>
+            <div class="txn-cat">${t.isDarurat?'Dana Darurat':cat?.lbl||t.cat}${t.isCross?` ➜ ${gc(t.actualCat)?.lbl||t.actualCat}`:''}</div>
+            ${t.reason?`<div class="txn-reason">⚠️ ${t.reason}</div>`:''}
+          </div>
+          <div class="txn-r"><div class="txn-amt ${ac}">-${rp(t.amount)}</div></div>
+        </div>`;
+      }).join('')}
+    </div>`).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   DEVIASI PAGE
+═══════════════════════════════════════════════════════════ */
+function renderDev(){
+  const el=dom('devList');
+  if(!S.deviasi.length){el.innerHTML='<div class="card"><div class="empty"><div class="empty-ico">✅</div><p>Tidak ada deviasi! Keuangan on track 🎉</p></div></div>';return;}
+  el.innerHTML=S.deviasi.map(d=>{
+    const ds=new Date(d.date).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});
+    const tags=[];
+    if(d.isDarurat) tags.push('<span class="chip chip-red">DARURAT</span>');
+    if(d.isCross) tags.push('<span class="chip chip-yellow">CROSS</span>');
+    if(d.isOver) tags.push('<span class="chip chip-red">OVER BULANAN</span>');
+    if(d.isDailyOver) tags.push('<span class="chip chip-yellow">OVER HARIAN</span>');
+    if(d.isWeeklyOver) tags.push('<span class="chip chip-yellow">OVER MINGGUAN</span>');
+    return `<div class="dv">
+      <div class="dv-head">
+        <span class="dv-cat">${d.isCross?`${d.catLbl} ➜ ${d.actualLbl}`:d.catLbl}</span>
+        <span class="dv-exc">+${rp(d.excess)}</span>
+      </div>
+      <div style="margin-bottom:5px;">${tags.join(' ')}</div>
+      <div class="dv-reason">"${d.reason}"</div>
+      <div class="dv-date">${ds}</div>
+    </div>`;
+  }).join('');
+}
+
+/* ═══════════════════════════════════════════════════════════
+   SETTINGS PAGE
+═══════════════════════════════════════════════════════════ */
+function renderSettings(){
+  dom('setNama').textContent=S.nama||'—';
+  dom('setGaji').textContent=rp(S.gaji);
+  dom('setPer').textContent=periodeLabel();
+  dom('setAlloc').innerHTML=CATS.map(c=>`
+    <div class="si"><span class="si-lbl">${c.ico} ${c.lbl}</span><span class="si-val">${rp(S.alokasi[c.id]||0)}</span></div>`).join('');
+  // sync toggle
+  dom('toggleBufDar').checked=S.bufDarInAlloc||false;
+  const dot=dom('thumbDot'),thumb=dom('toggleThumb');
+  if(S.bufDarInAlloc){thumb.style.background='var(--accent)';dot.style.transform='translateX(18px)';}
+  else{thumb.style.background='var(--s3)';dot.style.transform='translateX(0)';}
+}
+
+/* ═══════════════════════════════════════════════════════════
+   KOSAN input listener (after DOM ready)
+═══════════════════════════════════════════════════════════ */
+dom('kosanAmt').addEventListener('input',function(){
+  fmtInput(this);
+  const amt=numRaw(this.value),budget=S.alokasi['kosan']||0;
+  const w=dom('kosanWarn'),rf=dom('kosanReasonField');
+  if(budget>0&&amt>budget){w.classList.add('on');w.innerHTML=`⚠️ Melebihi budget kosan ${rp(amt-budget)}`;rf.style.display='block';}
+  else{w.classList.remove('on');rf.style.display='none';}
+});
+
+/* ═══════════════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════════════ */
+renderDash();
+if(!S.gaji) setTimeout(()=>openModal('gaji'),600);
+</script>
+</body>
+</html>
