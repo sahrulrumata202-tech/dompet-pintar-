@@ -1,24 +1,51 @@
 {
   "name": "DompetPintar",
   "short_name": "DompetPintar",
-  "description": "Aplikasi pencatatan keuangan personal",
+  "description": "Aplikasi pencatatan & manajemen keuangan personal oleh @juna rumata",
   "start_url": "./index.html",
+  "scope": "./",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#0c0c10",
   "theme_color": "#0c0c10",
-  "orientation": "portrait",
+  "lang": "id",
+  "categories": ["finance", "productivity"],
   "icons": [
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 192 192'><rect width='192' height='192' rx='40' fill='%230c0c10'/><text y='130' x='96' font-size='110' text-anchor='middle'>💰</text></svg>",
+      "src": "icon-192.png",
       "sizes": "192x192",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
-      "src": "data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'><rect width='512' height='512' rx='100' fill='%230c0c10'/><text y='360' x='256' font-size='300' text-anchor='middle'>💰</text></svg>",
+      "src": "icon-512.png",
       "sizes": "512x512",
-      "type": "image/svg+xml",
-      "purpose": "any maskable"
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "./index.html",
+      "sizes": "390x844",
+      "type": "text/html",
+      "form_factor": "narrow",
+      "label": "Dashboard DompetPintar"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Catat Pengeluaran",
+      "short_name": "Catat",
+      "description": "Langsung tambah transaksi baru",
+      "url": "./index.html",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
     }
   ]
 }
