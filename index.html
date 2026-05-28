@@ -166,6 +166,12 @@ body::before{content:'';position:fixed;top:-80px;right:-80px;width:280px;height:
 .amt-dev{color:var(--yellow);}
 .txn-minus{font-size:10px;font-weight:700;color:var(--red);margin-top:2px;}
 
+/* LAINNYA TXN */
+.txn-lainnya{background:rgba(245,200,66,.04);border-left:3px solid var(--yellow);border-radius:0 var(--r-sm) var(--r-sm) 0;padding-left:9px;}
+.lainnya-tag{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:700;
+  color:var(--yellow);background:rgba(245,200,66,.1);border:1px solid rgba(245,200,66,.22);
+  padding:2px 7px;border-radius:20px;margin-top:3px;}
+
 /* TAMBAH TXN row */
 .txn-tambah{background:rgba(62,207,142,.04);border-radius:var(--r-sm);padding:8px 10px;
   margin-bottom:6px;border:1px solid rgba(62,207,142,.15);}
@@ -411,14 +417,28 @@ body::before{content:'';position:fixed;top:-80px;right:-80px;width:280px;height:
       <div class="field"><label>Jumlah (Rp)</label>
         <input type="text" inputmode="numeric" id="txnAmt" placeholder="0" oninput="fmtInput(this);checkDev()"></div>
       <div class="field"><label>Kelompok Dana</label>
-        <select id="txnCat" onchange="checkDev()"><option value="">Pilih...</option></select></div>
+        <select id="txnCat" onchange="onCatChange()"><option value="">Pilih...</option></select></div>
     </div>
-    <div class="field"><label>Dana Sebenarnya (cross-spending?)</label>
-      <select id="txnActual" onchange="checkDev()"><option value="">Sama seperti di atas</option></select></div>
-    <div class="warnbox" id="devWarn"></div>
-    <div class="field" id="reasonField" style="display:none">
-      <label>Alasan *</label>
-      <textarea id="txnReason" placeholder="Tulis alasan..."></textarea></div>
+    <!-- LAINNYA FIELDS — tampil hanya jika pilih "lainnya" -->
+    <div id="lainnyaFields" style="display:none">
+      <div class="field"><label>Jenis Pengeluaran</label>
+        <input type="text" id="lainnyaJenis" placeholder="cth: Obat, Transport darurat, Hiburan..."></div>
+      <div class="field"><label>Dana Berasal Dari</label>
+        <select id="lainnyaSumber">
+          <option value="buffer">🛡️ Dana Buffer</option>
+          <option value="lainnya">💼 Lainnya / tidak dipotong</option>
+        </select>
+      </div>
+    </div>
+    <!-- NORMAL FIELDS — tampil hanya jika pilih kategori biasa -->
+    <div id="normalFields">
+      <div class="field"><label>Dana Sebenarnya (cross-spending?)</label>
+        <select id="txnActual" onchange="checkDev()"><option value="">Sama seperti di atas</option></select></div>
+      <div class="warnbox" id="devWarn"></div>
+      <div class="field" id="reasonField" style="display:none">
+        <label>Alasan *</label>
+        <textarea id="txnReason" placeholder="Tulis alasan..."></textarea></div>
+    </div>
     <button class="btn btn-accent" onclick="addTxn()">Simpan</button>
     <button class="btn btn-ghost" onclick="closeModal('txnModal')">Batal</button>
   </div>
@@ -601,10 +621,12 @@ function go(id){
 function openModal(t){
   if(t==='txn'){
     buildCatOpts();
-    ['txnNote','txnReason'].forEach(i=>$$(i).value='');
+    ['txnNote','txnReason','lainnyaJenis'].forEach(i=>$$(i).value='');
     $$('txnAmt').value='';
     $$('devWarn').classList.remove('on');
     $$('reasonField').style.display='none';
+    $$('lainnyaFields').style.display='none';
+    $$('normalFields').style.display='block';
     $$('txnModal').classList.add('on');
   }
   if(t==='gaji'){buildSetupForm();$$('gajiModal').classList.add('on');}
@@ -629,6 +651,23 @@ function buildCatOpts(){
     s.innerHTML+=`<option value="${c.id}">${c.ico} ${c.lbl} (sisa ${rp(a-u)})</option>`;
     s2.innerHTML+=`<option value="${c.id}">${c.ico} ${c.lbl}</option>`;
   });
+  // tambah opsi lainnya di paling bawah
+  s.innerHTML+=`<option value="lainnya">✳️ Lainnya (di luar kelompok)</option>`;
+}
+
+function onCatChange(){
+  const val=$$('txnCat').value;
+  const isLainnya=val==='lainnya';
+  $$('lainnyaFields').style.display=isLainnya?'block':'none';
+  $$('normalFields').style.display=isLainnya?'none':'block';
+  // update sumber lainnya dengan saldo buffer terkini
+  if(isLainnya){
+    $$('lainnyaSumber').innerHTML=
+      `<option value="buffer">🛡️ Dana Buffer (tersisa ${rp(S.buffer)})</option>`+
+      `<option value="lainnya">💼 Lainnya / tidak dipotong</option>`;
+  } else {
+    checkDev();
+  }
 }
 
 /* ═══════════════════════════ CHECK DEVIATION ═══════════════ */
@@ -653,11 +692,35 @@ function checkDev(){
 /* ═══════════════════════════ ADD TXN ═══════════════════════ */
 function addTxn(){
   const note=$$('txnNote').value.trim(),amt=numRaw($$('txnAmt').value);
-  const catId=$$('txnCat').value,actual=$$('txnActual').value||catId;
-  const reason=$$('txnReason').value.trim();
+  const catId=$$('txnCat').value;
   if(!note){alert('Keterangan wajib diisi!');return;}
   if(!amt){alert('Jumlah wajib diisi!');return;}
   if(!catId){alert('Pilih kelompok dana!');return;}
+
+  // ── LAINNYA FLOW ──────────────────────────────────────────
+  if(catId==='lainnya'){
+    const jenis=$$('lainnyaJenis').value.trim();
+    const sumber=$$('lainnyaSumber').value;
+    if(!jenis){alert('Jenis pengeluaran wajib diisi!');return;}
+    if(sumber==='buffer'&&amt>S.buffer){
+      alert(`Melebihi saldo buffer! Buffer tersisa ${rp(S.buffer)}`);return;
+    }
+    if(sumber==='buffer') S.buffer-=amt;
+    S.transactions.unshift({
+      id:Date.now(),note,amount:amt,
+      cat:'lainnya',actualCat:'lainnya',
+      jenis,sumber,
+      reason:`Pengeluaran lainnya dari ${sumber==='buffer'?'Dana Buffer':'sumber lain'}`,
+      isCross:false,isOver:false,isLimOver:false,
+      date:new Date().toISOString(),type:'lainnya'
+    });
+    save();closeModal('txnModal');renderDash();
+    return;
+  }
+
+  // ── NORMAL FLOW ───────────────────────────────────────────
+  const actual=$$('txnActual').value||catId;
+  const reason=$$('txnReason').value.trim();
   const u=usedInCat(actual),a=allocOf(actual);
   const ul=getUsedForLim(actual),lim=getLimEff(actual);
   const isCross=actual!==catId,isOver=amt+u>a,isLimOver=lim>0&&amt+ul>lim;
@@ -786,14 +849,14 @@ function resetData(){
 
 /* ═══════════════════════════ DOWNLOAD HISTORY ══════════════ */
 function downloadHistory(){
-  const spends=S.transactions.filter(t=>t.type==='spend');
+  const spends=S.transactions.filter(t=>t.type==='spend'||t.type==='lainnya');
   if(!spends.length){alert('Belum ada transaksi untuk diunduh.');return;}
   const period=periodeLabel();
-  let csv='Tanggal,Keterangan,Kelompok Dana,Dana Aktual,Jumlah (Rp),Alasan\n';
+  let csv='Tanggal,Keterangan,Kelompok Dana,Jenis/Dana Aktual,Jumlah (Rp),Alasan\n';
   spends.forEach(t=>{
     const dt=new Date(t.date).toLocaleDateString('id-ID',{day:'2-digit',month:'2-digit',year:'numeric'});
-    const cat=gc(t.cat)?.lbl||t.cat;
-    const actual=gc(t.actualCat)?.lbl||t.actualCat;
+    const cat=t.type==='lainnya'?'✳️ Lainnya':gc(t.cat)?.lbl||t.cat;
+    const actual=t.type==='lainnya'?(t.jenis||'Lainnya'):gc(t.actualCat)?.lbl||t.actualCat;
     const reason=(t.reason||'').replace(/,/g,';');
     csv+=`${dt},"${t.note}","${cat}","${actual}",${t.amount},"${reason}"\n`;
   });
@@ -1090,37 +1153,46 @@ function renderHarian(){
 /* ═══════════════════════════ TRANSAKSI PAGE ════════════════ */
 function renderTxns(){
   const el=$$('txnList');
-  const spends=S.transactions.filter(t=>t.type==='spend');
-  if(!spends.length){el.innerHTML='<div class="card"><div class="empty"><div class="empty-ico">🧾</div><p>Belum ada transaksi</p></div></div>';return;}
+  const all=S.transactions.filter(t=>t.type==='spend'||t.type==='lainnya');
+  if(!all.length){el.innerHTML='<div class="card"><div class="empty"><div class="empty-ico">🧾</div><p>Belum ada transaksi</p></div></div>';return;}
 
-  // group by date
   const grp={};
-  spends.forEach(t=>{
+  all.forEach(t=>{
     const k=new Date(t.date).toLocaleDateString('id-ID',{weekday:'short',day:'numeric',month:'long'});
     if(!grp[k])grp[k]=[];grp[k].push(t);
   });
 
   el.innerHTML=Object.entries(grp).map(([dateKey,txns])=>{
     const dateStr=new Date(txns[0].date).toDateString();
-
-    // per-category daily overage for this date
     const catDayUsed={};
     S.transactions.filter(t=>t.type==='spend'&&new Date(t.date).toDateString()===dateStr).forEach(t=>{
-      const cid=t.actualCat||t.cat;
-      catDayUsed[cid]=(catDayUsed[cid]||0)+t.amount;
+      const cid=t.actualCat||t.cat;catDayUsed[cid]=(catDayUsed[cid]||0)+t.amount;
     });
 
     return `
       <div class="sec-lbl">${dateKey}</div>
       <div class="card" style="padding:8px 12px;margin-bottom:13px;">
         ${txns.map(t=>{
+          if(t.type==='lainnya'){
+            const sumberLbl=t.sumber==='buffer'?'Dana Buffer':'Sumber Lain';
+            return `<div class="txn txn-lainnya">
+              <div class="txn-icon">✳️</div>
+              <div class="txn-body">
+                <div class="txn-name">${t.note}</div>
+                <div class="txn-cat" style="color:var(--yellow);">${t.jenis||'Pengeluaran Lainnya'}</div>
+                <div class="lainnya-tag">dari ${sumberLbl}</div>
+              </div>
+              <div class="txn-r">
+                <div class="txn-amt" style="color:var(--yellow);">-${rp(t.amount)}</div>
+                <div class="txn-date">${new Date(t.date).toLocaleDateString('id-ID',{day:'numeric',month:'short'})}</div>
+              </div>
+            </div>`;
+          }
           const cat=gc(t.cat),cid=t.actualCat||t.cat;
           const ac=t.isOver||t.isCross||t.isLimOver?'amt-dev':'amt-out';
-          // minus indicator: if this cat exceeded daily limit on this day
           const c=gc(cid),lim=getLimEff(cid);
           const dayTot=catDayUsed[cid]||0;
           const catDayOver=c?.lt==='daily'&&lim>0&&dayTot>lim;
-          const catExcess=dayTot-lim;
           return `<div class="txn">
             <div class="txn-icon">${cat?.ico||'💰'}</div>
             <div class="txn-body">
@@ -1130,12 +1202,11 @@ function renderTxns(){
             </div>
             <div class="txn-r">
               <div class="txn-amt ${ac}">-${rp(t.amount)}</div>
-              ${catDayOver?`<div class="txn-minus">-${rp(catExcess)} limit</div>`:''}
+              ${catDayOver?`<div class="txn-minus">-${rp(dayTot-lim)} limit</div>`:''}
             </div>
           </div>`;
         }).join('')}
         ${(()=>{
-          // show tambah transactions for this date too
           const tm=S.transactions.filter(t=>t.type==='tambah'&&new Date(t.date).toDateString()===dateStr);
           return tm.map(t=>`<div class="txn-tambah">
             <div class="txn-tambah-lbl">➕ ${t.note}</div>
