@@ -424,10 +424,16 @@ body::before{content:'';position:fixed;top:-80px;right:-80px;width:280px;height:
       <div class="field"><label>Jenis Pengeluaran</label>
         <input type="text" id="lainnyaJenis" placeholder="cth: Obat, Transport darurat, Hiburan..."></div>
       <div class="field"><label>Dana Berasal Dari</label>
-        <select id="lainnyaSumber">
+        <select id="lainnyaSumber" onchange="onSumberChange()">
           <option value="buffer">🛡️ Dana Buffer</option>
-          <option value="lainnya">💼 Lainnya / tidak dipotong</option>
+          <option value="darurat">🚨 Dana Darurat</option>
+          <option value="lainnya">💼 Lainnya</option>
         </select>
+      </div>
+      <!-- Muncul hanya jika pilih "Lainnya" -->
+      <div class="field" id="asalDanaField" style="display:none">
+        <label>Sebutkan Asal Dana</label>
+        <input type="text" id="lainnyaAsalDana" placeholder="cth: Dari gaji minggu lalu, Dari orang tua...">
       </div>
     </div>
     <!-- NORMAL FIELDS — tampil hanya jika pilih kategori biasa -->
@@ -621,11 +627,12 @@ function go(id){
 function openModal(t){
   if(t==='txn'){
     buildCatOpts();
-    ['txnNote','txnReason','lainnyaJenis'].forEach(i=>$$(i).value='');
+    ['txnNote','txnReason','lainnyaJenis','lainnyaAsalDana'].forEach(i=>$$(i).value='');
     $$('txnAmt').value='';
     $$('devWarn').classList.remove('on');
     $$('reasonField').style.display='none';
     $$('lainnyaFields').style.display='none';
+    $$('asalDanaField').style.display='none';
     $$('normalFields').style.display='block';
     $$('txnModal').classList.add('on');
   }
@@ -660,14 +667,22 @@ function onCatChange(){
   const isLainnya=val==='lainnya';
   $$('lainnyaFields').style.display=isLainnya?'block':'none';
   $$('normalFields').style.display=isLainnya?'none':'block';
-  // update sumber lainnya dengan saldo buffer terkini
   if(isLainnya){
     $$('lainnyaSumber').innerHTML=
       `<option value="buffer">🛡️ Dana Buffer (tersisa ${rp(S.buffer)})</option>`+
-      `<option value="lainnya">💼 Lainnya / tidak dipotong</option>`;
+      `<option value="darurat">🚨 Dana Darurat (tersisa ${rp(S.darurat||0)})</option>`+
+      `<option value="lainnya">💼 Lainnya</option>`;
+    $$('asalDanaField').style.display='none';
+    $$('lainnyaAsalDana').value='';
   } else {
     checkDev();
   }
+}
+
+function onSumberChange(){
+  const val=$$('lainnyaSumber').value;
+  $$('asalDanaField').style.display=val==='lainnya'?'block':'none';
+  if(val!=='lainnya') $$('lainnyaAsalDana').value='';
 }
 
 /* ═══════════════════════════ CHECK DEVIATION ═══════════════ */
@@ -701,16 +716,24 @@ function addTxn(){
   if(catId==='lainnya'){
     const jenis=$$('lainnyaJenis').value.trim();
     const sumber=$$('lainnyaSumber').value;
+    const asalDana=$$('lainnyaAsalDana').value.trim();
     if(!jenis){alert('Jenis pengeluaran wajib diisi!');return;}
+    if(sumber==='lainnya'&&!asalDana){alert('Asal dana wajib diisi!');return;}
     if(sumber==='buffer'&&amt>S.buffer){
       alert(`Melebihi saldo buffer! Buffer tersisa ${rp(S.buffer)}`);return;
     }
+    if(sumber==='darurat'&&amt>(S.darurat||0)){
+      alert(`Melebihi saldo darurat! Dana Darurat tersisa ${rp(S.darurat||0)}`);return;
+    }
     if(sumber==='buffer') S.buffer-=amt;
+    if(sumber==='darurat') S.darurat=(S.darurat||0)-amt;
+
+    const sumberLbl=sumber==='buffer'?'Dana Buffer':sumber==='darurat'?'Dana Darurat':asalDana;
     S.transactions.unshift({
       id:Date.now(),note,amount:amt,
       cat:'lainnya',actualCat:'lainnya',
-      jenis,sumber,
-      reason:`Pengeluaran lainnya dari ${sumber==='buffer'?'Dana Buffer':'sumber lain'}`,
+      jenis,sumber,asalDana:sumber==='lainnya'?asalDana:null,
+      reason:`Pengeluaran lainnya dari ${sumberLbl}`,
       isCross:false,isOver:false,isLimOver:false,
       date:new Date().toISOString(),type:'lainnya'
     });
