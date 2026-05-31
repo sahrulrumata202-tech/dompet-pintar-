@@ -10,7 +10,7 @@
  *  - Lainnya     → Network-First, fallback ke cache
  */
 
-const CACHE_NAME  = 'dompetpintar-v1';
+const CACHE_NAME  = 'dompetpintar-v2';
 const CACHE_FONTS = 'dompetpintar-fonts-v1';
 
 // File inti yang langsung di-cache saat install
