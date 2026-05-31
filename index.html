@@ -259,6 +259,33 @@ body::before{content:'';position:fixed;top:-80px;right:-80px;width:280px;height:
 .edit-lim-btn{font-size:10px;font-weight:700;color:var(--accent);
   background:rgba(123,104,245,.1);border:1px solid rgba(123,104,245,.22);
   padding:3px 9px;border-radius:20px;cursor:pointer;font-family:var(--font);}
+/* HISTORY PICKER */
+.month-picker{display:flex;align-items:center;gap:8px;margin-bottom:13px;overflow-x:auto;scrollbar-width:none;}
+.month-picker::-webkit-scrollbar{display:none;}
+.mpchip{flex-shrink:0;font-size:11px;font-weight:700;padding:6px 13px;border-radius:20px;
+  border:1px solid var(--border);background:transparent;color:var(--sub);cursor:pointer;
+  font-family:var(--font);transition:all .18s;}
+.mpchip.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+.month-summary{background:linear-gradient(135deg,#1b1836 0%,#161c2e 100%);
+  border:1px solid rgba(123,104,245,.25);border-radius:var(--r);padding:14px;margin-bottom:13px;}
+.ms-title{font-size:10px;font-weight:700;color:var(--sub);text-transform:uppercase;
+  letter-spacing:1px;margin-bottom:10px;}
+.ms-row{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;}
+.ms-stat{font-size:11px;color:var(--sub);}
+.ms-stat b{display:block;font-size:15px;font-weight:800;color:var(--text);margin-top:2px;}
+.big-spender{background:rgba(240,88,95,.07);border:1px solid rgba(240,88,95,.2);
+  border-radius:var(--r-sm);padding:11px 13px;margin-bottom:13px;}
+.bs-title{font-size:10px;font-weight:700;color:var(--red);text-transform:uppercase;
+  letter-spacing:.9px;margin-bottom:8px;}
+.bs-row{display:flex;justify-content:space-between;align-items:center;
+  padding:5px 0;border-bottom:1px solid rgba(240,88,95,.1);}
+.bs-row:last-child{border-bottom:none;}
+.bs-date{font-size:12px;font-weight:600;}
+.bs-amt{font-size:12px;font-weight:800;color:var(--red);}
+.purge-notice{background:rgba(245,200,66,.06);border:1px solid rgba(245,200,66,.2);
+  border-radius:var(--r-sm);padding:11px 13px;margin-bottom:13px;font-size:11px;
+  color:var(--yellow);line-height:1.65;}
+
 .dl-btn{font-size:11px;font-weight:700;color:var(--green);
   background:rgba(62,207,142,.1);border:1px solid rgba(62,207,142,.22);
   padding:5px 12px;border-radius:20px;cursor:pointer;font-family:var(--font);}
@@ -365,9 +392,18 @@ body::before{content:'';position:fixed;top:-80px;right:-80px;width:280px;height:
 
 <!-- ══ TRANSAKSI ═══════════════════════════════════════════ -->
 <div class="page" id="page-transactions">
+  <!-- Month picker -->
+  <div class="month-picker" id="monthPicker"></div>
+  <!-- Month summary -->
+  <div id="monthSummary"></div>
+  <!-- Big spender dates -->
+  <div id="bigSpender"></div>
+  <!-- Purge notice -->
+  <div id="purgeNotice"></div>
+  <!-- Download + filter row -->
   <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:13px;">
-    <div style="font-size:13px;font-weight:700;">Riwayat Transaksi</div>
-    <button class="dl-btn" onclick="downloadHistory()">⬇️ Unduh Bulan Ini</button>
+    <div style="font-size:12px;font-weight:700;" id="txnMonthLabel">—</div>
+    <button class="dl-btn" id="dlBtn" onclick="downloadHistory()">⬇️ Unduh</button>
   </div>
   <div id="txnList"></div>
 </div>
@@ -552,7 +588,7 @@ function fresh(){
 }
 
 let S=loadS();
-let editLimCat=null,tambahCat=null;
+let editLimCat=null,tambahCat=null,viewMonth=null; // viewMonth = 'YYYY-MM' string
 
 function loadS(){
   try{const d=localStorage.getItem('dp5');return d?{...fresh(),...JSON.parse(d)}:fresh();}
@@ -590,9 +626,47 @@ function daysInMonth(){const n=new Date();return new Date(n.getFullYear(),n.getM
 function getDay(){return new Date().getDate();}
 function daysLeft(){return daysInMonth()-getDay();}
 
-function periodeLabel(){
-  const[y,m]=S.periode.split('-');
+function periodeLabel(ym){
+  const key=ym||S.periode;
+  const[y,m]=key.split('-');
   return ['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'][parseInt(m)-1]+' '+y;
+}
+
+/* Semua bulan unik yang ada transaksinya, diurutkan terbaru */
+function getAvailableMonths(){
+  const now=new Date();
+  const nowKey=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  const set=new Set([nowKey]);
+  S.transactions.forEach(t=>{
+    const d=new Date(t.date);
+    set.add(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`);
+  });
+  return [...set].sort((a,b)=>b.localeCompare(a));
+}
+
+/* Auto-set periode ke bulan sekarang jika berganti bulan */
+function autoSetPeriode(){
+  const now=new Date();
+  const key=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  if(S.periode!==key) S.periode=key;
+}
+
+/* Hapus transaksi lebih dari 6 bulan */
+function purgeOldHistory(){
+  const now=new Date();
+  const cutoff=new Date(now.getFullYear(),now.getMonth()-6,1);
+  const before=S.transactions.length;
+  S.transactions=S.transactions.filter(t=>new Date(t.date)>=cutoff);
+  if(S.transactions.length<before){save();}
+  return before-S.transactions.length; // jumlah yang dihapus
+}
+
+/* Bulan yang sudah di-purge (lebih 6 bulan lalu) */
+function getPurgedNotice(){
+  const now=new Date();
+  const cutoff=new Date(now.getFullYear(),now.getMonth()-6,1);
+  const cutKey=`${cutoff.getFullYear()}-${String(cutoff.getMonth()+1).padStart(2,'0')}`;
+  return cutKey;
 }
 
 function getLimEff(id){
@@ -619,7 +693,10 @@ function go(id){
   if(id==='dashboard')renderDash();
   if(id==='budget')renderBudget();
   if(id==='harian')renderHarian();
-  if(id==='transactions')renderTxns();
+  if(id==='transactions'){
+    if(!viewMonth) viewMonth=S.periode;
+    renderTxns();
+  }
   if(id==='settings')renderSettings();
 }
 
@@ -871,45 +948,6 @@ function resetData(){
 }
 
 /* ═══════════════════════════ DOWNLOAD HISTORY ══════════════ */
-function downloadHistory(){
-  const spends=S.transactions.filter(t=>t.type==='spend'||t.type==='lainnya');
-  if(!spends.length){alert('Belum ada transaksi untuk diunduh.');return;}
-  const period=periodeLabel();
-  let csv='Tanggal,Keterangan,Kelompok Dana,Jenis/Dana Aktual,Jumlah (Rp),Alasan\n';
-  spends.forEach(t=>{
-    const dt=new Date(t.date).toLocaleDateString('id-ID',{day:'2-digit',month:'2-digit',year:'numeric'});
-    const cat=t.type==='lainnya'?'✳️ Lainnya':gc(t.cat)?.lbl||t.cat;
-    const actual=t.type==='lainnya'?(t.jenis||'Lainnya'):gc(t.actualCat)?.lbl||t.actualCat;
-    const reason=(t.reason||'').replace(/,/g,';');
-    csv+=`${dt},"${t.note}","${cat}","${actual}",${t.amount},"${reason}"\n`;
-  });
-  // summary
-  csv+='\n--- RINGKASAN ---\n';
-  csv+=`Periode,${period}\n`;
-  csv+=`Total Alokasi,${totalAlloc()}\n`;
-  csv+=`Total Terpakai,${totalUsed()}\n`;
-  csv+=`Sisa,${sisaGlobal()}\n`;
-  csv+=`Dana Buffer,${S.buffer}\n`;
-  CATS.forEach(c=>{
-    csv+=`${c.lbl},${usedInCat(c.id)} / ${allocOf(c.id)}\n`;
-  });
-  csv+=`\nDibuat oleh: @juna rumata | @high.value_\nDompetPintar v1.0\n`;
-
-  const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');
-  a.href=url;a.download=`DompetPintar_${S.periode}.csv`;
-  document.body.appendChild(a);a.click();
-  document.body.removeChild(a);URL.revokeObjectURL(url);
-}
-
-function archiveIfNeeded(force=false){
-  const now=new Date().toISOString().slice(0,7);
-  if((S.lastMonth&&S.lastMonth!==S.periode)||force){
-    // already handled by download button; just mark period
-  }
-  S.lastMonth=now;save();
-}
 
 /* ═══════════════════════════ RENDER DASHBOARD ══════════════ */
 function renderDash(){
@@ -1174,30 +1212,118 @@ function renderHarian(){
 }
 
 /* ═══════════════════════════ TRANSAKSI PAGE ════════════════ */
+function setViewMonth(ym){
+  viewMonth=ym;
+  renderTxns();
+}
+
 function renderTxns(){
+  autoSetPeriode();
+  purgeOldHistory();
+  if(!viewMonth) viewMonth=S.periode;
+
+  const months=getAvailableMonths();
+  const cutKey=getPurgedNotice();
+  const MONTH_NAMES=['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'];
+
+  // ── Month Picker ─────────────────────────────────────────
+  $$('monthPicker').innerHTML=months.map(m=>`
+    <button class="mpchip ${m===viewMonth?'on':''}" onclick="setViewMonth('${m}')">
+      ${periodeLabel(m)}
+    </button>`).join('');
+
+  // ── Filter txn untuk bulan ini ────────────────────────────
+  const [vy,vm]=viewMonth.split('-');
+  const monthStart=new Date(parseInt(vy),parseInt(vm)-1,1);
+  const monthEnd=new Date(parseInt(vy),parseInt(vm),1);
+
+  const allMonth=S.transactions.filter(t=>{
+    if(t.type!=='spend'&&t.type!=='lainnya') return false;
+    const d=new Date(t.date);
+    return d>=monthStart&&d<monthEnd;
+  });
+
+  // ── Month Summary ─────────────────────────────────────────
+  const totalBulan=allMonth.reduce((s,t)=>s+t.amount,0);
+  const txnCount=allMonth.length;
+  const spendOnly=allMonth.filter(t=>t.type==='spend');
+  const terbesar=spendOnly.length?Math.max(...spendOnly.map(t=>t.amount)):0;
+  const rataHari=totalBulan>0?(totalBulan/new Date(parseInt(vy),parseInt(vm),0).getDate()):0;
+
+  $$('monthSummary').innerHTML=totalBulan>0?`
+    <div class="month-summary">
+      <div class="ms-title">📊 Ringkasan ${periodeLabel(viewMonth)}</div>
+      <div class="ms-row">
+        <div class="ms-stat">Total Keluar<b style="color:var(--red);">${rp(totalBulan)}</b></div>
+        <div class="ms-stat">Transaksi<b>${txnCount}x</b></div>
+        <div class="ms-stat">Terbesar<b style="color:var(--yellow);">${rp(terbesar)}</b></div>
+        <div class="ms-stat">Rata/Hari<b>${rp(Math.round(rataHari))}</b></div>
+      </div>
+    </div>`:'';
+
+  // ── Big Spender Dates (top 3 hari pengeluaran terbesar) ───
+  const dayTotals={};
+  allMonth.forEach(t=>{
+    const dk=new Date(t.date).toLocaleDateString('id-ID',{day:'numeric',month:'short',year:'numeric'});
+    dayTotals[dk]=(dayTotals[dk]||0)+t.amount;
+  });
+  const topDays=Object.entries(dayTotals)
+    .sort((a,b)=>b[1]-a[1])
+    .slice(0,3)
+    .filter(([,v])=>v>0);
+
+  $$('bigSpender').innerHTML=topDays.length>1?`
+    <div class="big-spender">
+      <div class="bs-title">🔥 Hari Pengeluaran Terbesar</div>
+      ${topDays.map(([d,v])=>`
+        <div class="bs-row">
+          <span class="bs-date">📅 ${d}</span>
+          <span class="bs-amt">${rp(v)}</span>
+        </div>`).join('')}
+    </div>`:'';
+
+  // ── Purge Notice ─────────────────────────────────────────
+  const [cy,cm]=cutKey.split('-');
+  const cutLabel=MONTH_NAMES[parseInt(cm)-1]+' '+cy;
+  $$('purgeNotice').innerHTML=`
+    <div class="purge-notice">
+      🗂️ History tersimpan hingga 6 bulan ke belakang. Data sebelum <b>${cutLabel}</b> dihapus otomatis.
+      Unduh CSV untuk arsip jangka panjang.
+    </div>`;
+
+  // ── Label & download button ───────────────────────────────
+  $$('txnMonthLabel').textContent=`${periodeLabel(viewMonth)} — ${txnCount} transaksi`;
+
+  // ── Render list ───────────────────────────────────────────
   const el=$$('txnList');
-  const all=S.transactions.filter(t=>t.type==='spend'||t.type==='lainnya');
-  if(!all.length){el.innerHTML='<div class="card"><div class="empty"><div class="empty-ico">🧾</div><p>Belum ada transaksi</p></div></div>';return;}
+  if(!allMonth.length){
+    el.innerHTML='<div class="card"><div class="empty"><div class="empty-ico">🧾</div><p>Tidak ada transaksi di bulan ini</p></div></div>';
+    return;
+  }
 
   const grp={};
-  all.forEach(t=>{
+  allMonth.forEach(t=>{
     const k=new Date(t.date).toLocaleDateString('id-ID',{weekday:'short',day:'numeric',month:'long'});
     if(!grp[k])grp[k]=[];grp[k].push(t);
   });
 
   el.innerHTML=Object.entries(grp).map(([dateKey,txns])=>{
     const dateStr=new Date(txns[0].date).toDateString();
+    const dayTotal=txns.reduce((s,t)=>s+t.amount,0);
     const catDayUsed={};
     S.transactions.filter(t=>t.type==='spend'&&new Date(t.date).toDateString()===dateStr).forEach(t=>{
       const cid=t.actualCat||t.cat;catDayUsed[cid]=(catDayUsed[cid]||0)+t.amount;
     });
 
     return `
-      <div class="sec-lbl">${dateKey}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;margin-top:4px;">
+        <div class="sec-lbl" style="margin:0;">${dateKey}</div>
+        <div style="font-size:11px;font-weight:700;color:var(--red);">-${rp(dayTotal)}</div>
+      </div>
       <div class="card" style="padding:8px 12px;margin-bottom:13px;">
         ${txns.map(t=>{
           if(t.type==='lainnya'){
-            const sumberLbl=t.sumber==='buffer'?'Dana Buffer':'Sumber Lain';
+            const sumberLbl=t.sumber==='buffer'?'Dana Buffer':t.sumber==='darurat'?'Dana Darurat':(t.asalDana||'Sumber Lain');
             return `<div class="txn txn-lainnya">
               <div class="txn-icon">✳️</div>
               <div class="txn-body">
@@ -1240,6 +1366,45 @@ function renderTxns(){
   }).join('');
 }
 
+/* ═══════════════════════════ DOWNLOAD HISTORY ══════════════ */
+function downloadHistory(){
+  const vm=viewMonth||S.periode;
+  const[vy,vmm]=vm.split('-');
+  const monthStart=new Date(parseInt(vy),parseInt(vmm)-1,1);
+  const monthEnd=new Date(parseInt(vy),parseInt(vmm),1);
+  const spends=S.transactions.filter(t=>{
+    if(t.type!=='spend'&&t.type!=='lainnya')return false;
+    const d=new Date(t.date);return d>=monthStart&&d<monthEnd;
+  });
+  if(!spends.length){alert('Tidak ada transaksi di bulan ini untuk diunduh.');return;}
+  const period=periodeLabel(vm);
+  let csv='Tanggal,Keterangan,Kelompok Dana,Jenis/Dana Aktual,Jumlah (Rp),Alasan\n';
+  spends.forEach(t=>{
+    const dt=new Date(t.date).toLocaleDateString('id-ID',{day:'2-digit',month:'2-digit',year:'numeric'});
+    const cat=t.type==='lainnya'?'✳️ Lainnya':gc(t.cat)?.lbl||t.cat;
+    const actual=t.type==='lainnya'?(t.jenis||'Lainnya'):gc(t.actualCat)?.lbl||t.actualCat;
+    const reason=(t.reason||'').replace(/,/g,';');
+    csv+=`${dt},"${t.note}","${cat}","${actual}",${t.amount},"${reason}"\n`;
+  });
+  csv+='\n--- RINGKASAN ---\n';
+  csv+=`Periode,${period}\n`;
+  const totalBulan=spends.reduce((s,t)=>s+t.amount,0);
+  csv+=`Total Pengeluaran,${totalBulan}\n`;
+  CATS.forEach(c=>{
+    const u=spends.filter(t=>(t.actualCat||t.cat)===c.id).reduce((s,t)=>s+t.amount,0);
+    if(u>0)csv+=`${c.lbl},${u}\n`;
+  });
+  const lainnyaTotal=spends.filter(t=>t.type==='lainnya').reduce((s,t)=>s+t.amount,0);
+  if(lainnyaTotal>0)csv+=`Pengeluaran Lainnya,${lainnyaTotal}\n`;
+  csv+=`\nDibuat oleh: @juna rumata | @high.value_\nDompetPintar v1.0\n`;
+  const blob=new Blob(['\ufeff'+csv],{type:'text/csv;charset=utf-8'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;a.download=`DompetPintar_${vm}.csv`;
+  document.body.appendChild(a);a.click();
+  document.body.removeChild(a);URL.revokeObjectURL(url);
+}
+
 /* ═══════════════════════════ SETTINGS ═════════════════════ */
 function renderSettings(){
   $$('setNama').textContent=S.nama||'—';
@@ -1256,6 +1421,9 @@ function renderSettings(){
 }
 
 /* ═══════════════════════════ INIT ══════════════════════════ */
+autoSetPeriode();
+purgeOldHistory();
+viewMonth=S.periode;
 renderDash();
 if(!S.gaji) setTimeout(()=>openModal('gaji'),600);
 </script>
