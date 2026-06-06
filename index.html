@@ -259,7 +259,42 @@ body::before{content:'';position:fixed;top:-80px;right:-80px;width:280px;height:
 .edit-lim-btn{font-size:10px;font-weight:700;color:var(--accent);
   background:rgba(123,104,245,.1);border:1px solid rgba(123,104,245,.22);
   padding:3px 9px;border-radius:20px;cursor:pointer;font-family:var(--font);}
-/* HISTORY PICKER */
+/* REMINDER MODAL */
+.reminder-overlay{position:fixed;inset:0;z-index:1100;background:rgba(0,0,0,.82);
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  display:flex;align-items:flex-end;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .22s;}
+.reminder-overlay.on{opacity:1;pointer-events:all;}
+.reminder-modal{background:var(--s1);border:1px solid rgba(245,200,66,.3);
+  border-radius:22px 22px 0 0;padding:22px 17px 38px;
+  width:100%;max-width:430px;transform:translateY(100%);
+  transition:transform .28s cubic-bezier(.4,0,.2,1);}
+.reminder-overlay.on .reminder-modal{transform:translateY(0);}
+.reminder-icon{font-size:36px;text-align:center;margin-bottom:10px;}
+.reminder-title{font-size:17px;font-weight:800;text-align:center;margin-bottom:6px;}
+.reminder-sub{font-size:13px;color:var(--sub);text-align:center;line-height:1.65;margin-bottom:18px;}
+.empty-day-list{display:flex;flex-direction:column;gap:8px;margin-bottom:18px;}
+.empty-day-item{display:flex;justify-content:space-between;align-items:center;
+  background:var(--s2);border-radius:var(--r-sm);padding:11px 13px;}
+.edi-date{font-size:13px;font-weight:700;}
+.edi-actions{display:flex;gap:7px;}
+.edi-isi{font-size:11px;font-weight:700;color:var(--accent);
+  background:rgba(123,104,245,.12);border:1px solid rgba(123,104,245,.22);
+  padding:4px 10px;border-radius:20px;cursor:pointer;font-family:var(--font);}
+.edi-skip{font-size:11px;font-weight:700;color:var(--sub);
+  background:var(--s3);border:1px solid var(--border);
+  padding:4px 10px;border-radius:20px;cursor:pointer;font-family:var(--font);}
+
+/* DATE selector on txn modal */
+.date-selector{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;
+  padding-bottom:4px;margin-bottom:2px;}
+.date-selector::-webkit-scrollbar{display:none;}
+.dchip{flex-shrink:0;font-size:11px;font-weight:700;padding:6px 11px;
+  border-radius:20px;border:1px solid var(--border);background:transparent;
+  color:var(--sub);cursor:pointer;font-family:var(--font);transition:all .18s;}
+.dchip.on{background:var(--accent);border-color:var(--accent);color:#fff;}
+.dchip.empty{border-color:rgba(245,200,66,.4);color:var(--yellow);}
+.dchip.on.empty{background:var(--yellow);border-color:var(--yellow);color:#000;}
 .month-picker{display:flex;align-items:center;gap:8px;margin-bottom:13px;overflow-x:auto;scrollbar-width:none;}
 .month-picker::-webkit-scrollbar{display:none;}
 .mpchip{flex-shrink:0;font-size:11px;font-weight:700;padding:6px 13px;border-radius:20px;
@@ -446,7 +481,13 @@ body::before{content:'';position:fixed;top:-80px;right:-80px;width:280px;height:
 <div class="overlay" id="txnModal">
   <div class="modal">
     <div class="mhandle"></div>
-    <div class="mtitle">Catat Pengeluaran</div>
+    <div class="mtitle" id="txnModalTitle">Catat Pengeluaran</div>
+    <!-- Tanggal selector -->
+    <div class="field">
+      <label>Tanggal Transaksi</label>
+      <div class="date-selector" id="datePicker"></div>
+      <input type="hidden" id="txnDate">
+    </div>
     <div class="field"><label>Keterangan</label>
       <input type="text" id="txnNote" placeholder="cth: Makan siang nasi padang"></div>
     <div class="r2">
@@ -455,7 +496,6 @@ body::before{content:'';position:fixed;top:-80px;right:-80px;width:280px;height:
       <div class="field"><label>Kelompok Dana</label>
         <select id="txnCat" onchange="onCatChange()"><option value="">Pilih...</option></select></div>
     </div>
-    <!-- LAINNYA FIELDS — tampil hanya jika pilih "lainnya" -->
     <div id="lainnyaFields" style="display:none">
       <div class="field"><label>Jenis Pengeluaran</label>
         <input type="text" id="lainnyaJenis" placeholder="cth: Obat, Transport darurat, Hiburan..."></div>
@@ -466,13 +506,11 @@ body::before{content:'';position:fixed;top:-80px;right:-80px;width:280px;height:
           <option value="lainnya">💼 Lainnya</option>
         </select>
       </div>
-      <!-- Muncul hanya jika pilih "Lainnya" -->
       <div class="field" id="asalDanaField" style="display:none">
         <label>Sebutkan Asal Dana</label>
         <input type="text" id="lainnyaAsalDana" placeholder="cth: Dari gaji minggu lalu, Dari orang tua...">
       </div>
     </div>
-    <!-- NORMAL FIELDS — tampil hanya jika pilih kategori biasa -->
     <div id="normalFields">
       <div class="field"><label>Dana Sebenarnya (cross-spending?)</label>
         <select id="txnActual" onchange="checkDev()"><option value="">Sama seperti di atas</option></select></div>
@@ -483,6 +521,17 @@ body::before{content:'';position:fixed;top:-80px;right:-80px;width:280px;height:
     </div>
     <button class="btn btn-accent" onclick="addTxn()">Simpan</button>
     <button class="btn btn-ghost" onclick="closeModal('txnModal')">Batal</button>
+  </div>
+</div>
+
+<!-- ══ MODAL: REMINDER HARI KOSONG ════════════════════════ -->
+<div class="reminder-overlay" id="reminderModal">
+  <div class="reminder-modal">
+    <div class="reminder-icon">📋</div>
+    <div class="reminder-title">Ada Hari yang Belum Tercatat!</div>
+    <div class="reminder-sub" id="reminderSub">Tanggal berikut belum ada transaksi. Isi sekarang atau tandai "Tidak Ada Transaksi".</div>
+    <div class="empty-day-list" id="emptyDayList"></div>
+    <button class="btn btn-accent" onclick="closeReminder()">Selesai, Lanjut Hari Ini</button>
   </div>
 </div>
 
@@ -575,7 +624,7 @@ const COLORS=['#7b68f5','#f5904a','#3ecf8e','#f0585f','#f5c842','#5aadff','#f472
 
 function fresh(){
   return {
-    nama:'',gaji:0,buffer:0,bufInAlloc:false,
+    nama:'',gaji:0,buffer:0,darurat:0,bufInAlloc:false,
     periode:new Date().toISOString().slice(0,7),
     alokasi:Object.fromEntries(CATS.map(c=>[c.id,0])),
     limitCustom:Object.fromEntries(CATS.map(c=>[c.id,0])),
@@ -583,7 +632,9 @@ function fresh(){
     kosanPaid:false,kosanAmt:0,
     transactions:[],
     rekoHidden:false,
-    lastMonth:''
+    lastMonth:'',
+    emptyDays:[],          // array of 'YYYY-MM-DD' yang ditandai tidak ada transaksi
+    lastReminderDate:''    // tanggal terakhir reminder ditampilkan
   };
 }
 
@@ -700,8 +751,130 @@ function go(id){
   if(id==='settings')renderSettings();
 }
 
+/* ═══════════════════════ EMPTY DAY SYSTEM ══════════════════ */
+
+/* Kembalikan array YYYY-MM-DD string dari tanggal 1 bulan ini sampai kemarin */
+function getPastDaysThisMonth(){
+  const now=new Date();
+  const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  const days=[];
+  for(let d=1;d<today.getDate();d++){
+    const dt=new Date(now.getFullYear(),now.getMonth(),d);
+    days.push(dateKey(dt));
+  }
+  return days;
+}
+
+/* Format YYYY-MM-DD dari Date object */
+function dateKey(d){
+  return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function todayKey(){return dateKey(new Date());}
+
+/* Cek apakah tanggal punya transaksi ATAU sudah ditandai kosong */
+function dayHasRecord(dk){
+  const hasTxn=S.transactions.some(t=>{
+    const td=new Date(t.date);
+    return dateKey(td)===dk&&(t.type==='spend'||t.type==='lainnya');
+  });
+  const markedEmpty=S.emptyDays&&S.emptyDays.includes(dk);
+  return hasTxn||markedEmpty;
+}
+
+/* Cari hari-hari kosong yang belum tercatat (max 7 hari ke belakang) */
+function getUnrecordedDays(){
+  const past=getPastDaysThisMonth();
+  // batasi 7 hari terakhir agar tidak overwhelm
+  const recent=past.slice(-7);
+  return recent.filter(dk=>!dayHasRecord(dk));
+}
+
+/* Tandai hari sebagai tidak ada transaksi */
+function markDayEmpty(dk){
+  if(!S.emptyDays)S.emptyDays=[];
+  if(!S.emptyDays.includes(dk))S.emptyDays.push(dk);
+  save();
+  renderReminder();
+}
+
+/* Buka modal txn dengan tanggal tertentu (untuk isi mundur) */
+function openTxnForDate(dk){
+  closeReminder();
+  openModal('txn',dk);
+}
+
+/* ═══════════════════════ REMINDER ══════════════════════════ */
+function checkAndShowReminder(){
+  // Cek last seen: hanya tampilkan sekali per hari
+  const todayStr=todayKey();
+  if(S.lastReminderDate===todayStr)return;
+  const unrecorded=getUnrecordedDays();
+  if(!unrecorded.length)return;
+  S.lastReminderDate=todayStr;save();
+  renderReminder();
+  $$('reminderModal').classList.add('on');
+}
+
+function renderReminder(){
+  const unrecorded=getUnrecordedDays();
+  if(!unrecorded.length){
+    $$('reminderModal').classList.remove('on');return;
+  }
+  const DNAMES=['Min','Sen','Sel','Rab','Kam','Jum','Sab'];
+  $$('reminderSub').textContent=`${unrecorded.length} hari belum tercatat. Isi sekarang atau tandai tidak ada transaksi.`;
+  $$('emptyDayList').innerHTML=unrecorded.map(dk=>{
+    const d=new Date(dk+'T00:00:00');
+    const lbl=`${DNAMES[d.getDay()]}, ${d.getDate()} ${['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'][d.getMonth()]}`;
+    return `<div class="empty-day-item">
+      <div class="edi-date">${lbl}</div>
+      <div class="edi-actions">
+        <button class="edi-isi" onclick="openTxnForDate('${dk}')">✏️ Isi</button>
+        <button class="edi-skip" onclick="markDayEmpty('${dk}')">Tidak Ada</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function closeReminder(){
+  $$('reminderModal').classList.remove('on');
+}
+
+/* ═══════════════════════ DATE PICKER ═══════════════════════ */
+function buildDatePicker(selectedDk){
+  const now=new Date();
+  const today=dateKey(now);
+  // Tampilkan 14 hari ke belakang + hari ini
+  const chips=[];
+  for(let i=13;i>=0;i--){
+    const d=new Date(now.getFullYear(),now.getMonth(),now.getDate()-i);
+    // batasi hanya dalam bulan yang sama
+    if(d.getMonth()!==now.getMonth())continue;
+    const dk=dateKey(d);
+    const isToday=dk===today;
+    const isEmpty=!dayHasRecord(dk)&&!isToday;
+    const lbl=isToday?'Hari Ini':`${d.getDate()}`;
+    chips.push(`<button class="dchip ${dk===selectedDk?'on':''} ${isEmpty?'empty':''}"
+      onclick="selectDate('${dk}')" title="${dk}">${lbl}${isEmpty?'·':''}</button>`);
+  }
+  $$('datePicker').innerHTML=chips.join('');
+  $$('txnDate').value=selectedDk||today;
+  // scroll ke kanan (hari ini)
+  setTimeout(()=>{const dp=$$('datePicker');if(dp)dp.scrollLeft=dp.scrollWidth;},50);
+}
+
+function selectDate(dk){
+  $$('txnDate').value=dk;
+  document.querySelectorAll('.dchip').forEach(c=>{
+    c.classList.toggle('on',c.title===dk);
+  });
+  // Update judul modal
+  const d=new Date(dk+'T00:00:00');
+  const isToday=dk===todayKey();
+  $$('txnModalTitle').textContent=isToday?'Catat Pengeluaran Hari Ini':`Catat — ${d.getDate()} ${['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'][d.getMonth()]}`;
+}
+
 /* ═══════════════════════════ MODALS ════════════════════════ */
-function openModal(t){
+function openModal(t, prefillDate){
   if(t==='txn'){
     buildCatOpts();
     ['txnNote','txnReason','lainnyaJenis','lainnyaAsalDana'].forEach(i=>$$(i).value='');
@@ -711,6 +884,9 @@ function openModal(t){
     $$('lainnyaFields').style.display='none';
     $$('asalDanaField').style.display='none';
     $$('normalFields').style.display='block';
+    const startDate=prefillDate||todayKey();
+    buildDatePicker(startDate);
+    selectDate(startDate);
     $$('txnModal').classList.add('on');
   }
   if(t==='gaji'){buildSetupForm();$$('gajiModal').classList.add('on');}
@@ -785,6 +961,13 @@ function checkDev(){
 function addTxn(){
   const note=$$('txnNote').value.trim(),amt=numRaw($$('txnAmt').value);
   const catId=$$('txnCat').value;
+  const selectedDk=$$('txnDate').value||todayKey();
+  // Buat datetime: gunakan tanggal yang dipilih, jam sekarang
+  const now=new Date();
+  const [sy,sm,sd]=selectedDk.split('-');
+  const txnDateTime=new Date(parseInt(sy),parseInt(sm)-1,parseInt(sd),
+    now.getHours(),now.getMinutes(),now.getSeconds()).toISOString();
+
   if(!note){alert('Keterangan wajib diisi!');return;}
   if(!amt){alert('Jumlah wajib diisi!');return;}
   if(!catId){alert('Pilih kelompok dana!');return;}
@@ -796,23 +979,17 @@ function addTxn(){
     const asalDana=$$('lainnyaAsalDana').value.trim();
     if(!jenis){alert('Jenis pengeluaran wajib diisi!');return;}
     if(sumber==='lainnya'&&!asalDana){alert('Asal dana wajib diisi!');return;}
-    if(sumber==='buffer'&&amt>S.buffer){
-      alert(`Melebihi saldo buffer! Buffer tersisa ${rp(S.buffer)}`);return;
-    }
-    if(sumber==='darurat'&&amt>(S.darurat||0)){
-      alert(`Melebihi saldo darurat! Dana Darurat tersisa ${rp(S.darurat||0)}`);return;
-    }
-    if(sumber==='buffer') S.buffer-=amt;
-    if(sumber==='darurat') S.darurat=(S.darurat||0)-amt;
-
+    if(sumber==='buffer'&&amt>S.buffer){alert(`Melebihi saldo buffer! Tersisa ${rp(S.buffer)}`);return;}
+    if(sumber==='darurat'&&amt>(S.darurat||0)){alert(`Melebihi dana darurat! Tersisa ${rp(S.darurat||0)}`);return;}
+    if(sumber==='buffer')S.buffer-=amt;
+    if(sumber==='darurat')S.darurat=(S.darurat||0)-amt;
     const sumberLbl=sumber==='buffer'?'Dana Buffer':sumber==='darurat'?'Dana Darurat':asalDana;
     S.transactions.unshift({
-      id:Date.now(),note,amount:amt,
-      cat:'lainnya',actualCat:'lainnya',
+      id:Date.now(),note,amount:amt,cat:'lainnya',actualCat:'lainnya',
       jenis,sumber,asalDana:sumber==='lainnya'?asalDana:null,
       reason:`Pengeluaran lainnya dari ${sumberLbl}`,
       isCross:false,isOver:false,isLimOver:false,
-      date:new Date().toISOString(),type:'lainnya'
+      date:txnDateTime,type:'lainnya'
     });
     save();closeModal('txnModal');renderDash();
     return;
@@ -828,7 +1005,7 @@ function addTxn(){
   S.transactions.unshift({
     id:Date.now(),note,amount:amt,cat:catId,actualCat:actual,
     reason:reason||null,isCross:!!isCross,isOver,isLimOver,
-    date:new Date().toISOString(),type:'spend'
+    date:txnDateTime,type:'spend'
   });
   save();closeModal('txnModal');renderDash();
 }
@@ -943,7 +1120,8 @@ function resetData(){
   archiveIfNeeded(true);
   S.transactions=[];S.kosanPaid=false;S.kosanAmt=0;
   S.extra=Object.fromEntries(CATS.map(c=>[c.id,0]));
-  S.rekoHidden=false;S.periode=new Date().toISOString().slice(0,7);
+  S.rekoHidden=false;S.emptyDays=[];S.lastReminderDate='';
+  S.periode=new Date().toISOString().slice(0,7);
   save();renderDash();
 }
 
@@ -1425,7 +1603,11 @@ autoSetPeriode();
 purgeOldHistory();
 viewMonth=S.periode;
 renderDash();
-if(!S.gaji) setTimeout(()=>openModal('gaji'),600);
+if(!S.gaji){
+  setTimeout(()=>openModal('gaji'),600);
+} else {
+  setTimeout(checkAndShowReminder,800);
+}
 </script>
 </body>
 </html>
